@@ -1,0 +1,4 @@
+*
+!docker/chrome/package.json
+!dist/devjob/registryproxy.js
+!dist/workspaces/registryproxy-main.js

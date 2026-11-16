@@ -1,0 +1,70 @@
+# Dev-job stack (Gate 1 self-code X1-X4, OD-1). Start: docker compose -f docker-compose.devjob.yml up -d   (after `npm run build` and docker/devjob/build.sh)
+#
+#   [agent]  --devjob_agentnet (internal, no gateway)--> [modelproxy] --egress-model--> api.anthropic.com   (key lives ONLY in modelproxy)
+#   [prep]   --devjob_prepnet  (internal, no gateway)--> [registryproxy] --egress-registry--> registry.npmjs.org (GET/HEAD only)
+#   [test]   --network none
+#   host (main app) --127.0.0.1:8788--> modelproxy control API (mint/read/close a per-job credential)
+#
+# The agent, prep and test containers are NOT in this file: the main application starts them through the fixed-argv launcher (devjob/launcher.ts),
+# each with the same hardening baseline. This file is not given the app env file on purpose: only modelproxy gets its own two secrets.
+name: devjob
+services:
+  modelproxy:
+    image: assistant-devjob-modelproxy:local
+    init: true
+    user: "65534:65534"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 128
+    mem_limit: 256m
+    cpus: 1
+    tmpfs: ["/tmp:rw,noexec,nosuid,nodev,size=16m"]
+    volumes: ["modelproxy-data:/data"]
+    environment:
+      # Set in the shell that runs `docker compose` (never committed); the SAME file must not be the app's env file.
+      DEVJOB_ANTHROPIC_API_KEY: ${DEVJOB_ANTHROPIC_API_KEY:?set the dev-job key (its own Console workspace, spend limit, web tools off)}
+      CONTROL_TOKEN: ${DEVJOB_PROXY_TOKEN:?set the control token (>= 32 chars)}
+      PRICES_JSON: ${DEVJOB_PRICES_JSON:?set {"<model>":{"inUsd":..,"outUsd":..}}}
+      MONTHLY_CAP_USD: ${DEVJOB_MONTHLY_CAP_USD:?set the monthly cap in USD (0 refuses everything)}
+      INTERNAL_CIDR: 10.88.78.0/24
+      # Tests only (docker/devjob/probe.sh points these at a fake upstream); production leaves them unset.
+      UPSTREAM_URL: ${DEVJOB_UPSTREAM_URL:-https://api.anthropic.com}
+      UPSTREAM_ALLOW_HTTP: ${DEVJOB_UPSTREAM_ALLOW_HTTP:-0}
+    ports: ["127.0.0.1:8788:8788"]
+    networks:
+      agentnet: { ipv4_address: 10.88.78.2 }
+      egress-model: {}
+  registryproxy:
+    image: assistant-devjob-registryproxy:local
+    init: true
+    user: "65534:65534"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 128
+    mem_limit: 256m
+    cpus: 1
+    tmpfs: ["/tmp:rw,noexec,nosuid,nodev,size=16m"]
+    networks:
+      prepnet: { ipv4_address: 10.88.79.2 }
+      egress-registry: {}
+    environment:
+      # Tests only (docker/devjob/probe.sh); production leaves them unset and the upstream is registry.npmjs.org.
+      UPSTREAM_URL: ${DEVJOB_UPSTREAM_URL:-}
+      UPSTREAM_ALLOW_HTTP: ${DEVJOB_UPSTREAM_ALLOW_HTTP:-0}
+networks:
+  agentnet:
+    name: devjob_agentnet
+    internal: true
+    ipam: { config: [{ subnet: 10.88.78.0/24 }] }
+  prepnet:
+    name: devjob_prepnet
+    internal: true
+    ipam: { config: [{ subnet: 10.88.79.0/24 }] }
+  egress-model:
+    name: devjob_egress_model
+  egress-registry:
+    name: devjob_egress_registry
+volumes:
+  modelproxy-data:

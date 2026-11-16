@@ -1,0 +1,19 @@
+# Secrets never enter the build context (Gate 1 D20)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+.git
+.gitignore
+node_modules
+data
+dist
+coverage
+*.log
+tests
+docker-compose.test.yml
+deploy
+README.md
+# P7: a yt-dlp cookies file is mounted at run time, never built into the image
+**/*cookies*

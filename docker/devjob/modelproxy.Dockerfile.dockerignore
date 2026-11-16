@@ -1,0 +1,5 @@
+*
+!docker/chrome/package.json
+!dist/devjob/modelproxy.js
+!dist/devjob/modelproxy-main.js
+!dist/net/proxy.js

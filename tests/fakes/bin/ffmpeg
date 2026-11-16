@@ -1,0 +1,26 @@
+#!/bin/sh
+# Fake ffmpeg (tests only; never a real binary). Appends its argv to $FAKE_BIN_LOG when set, `--dump-env` prints its
+# environment, `-version` prints a version line, anything else copies stdin to stdout (a pass-through "transcode").
+# Test switches: $FAKE_FFMPEG_PIDS=<file> appends "pids <self> <grandchild>" and keeps a long-lived grandchild (sleep 60) in its
+# group; $FAKE_FFMPEG_BYTES=N reads stdin and writes N zero bytes instead; $FAKE_FFMPEG_EXIT=N reads stdin and exits N;
+# $FAKE_FFMPEG_HANG set reads stdin, then waits for its grandchild (a decode that never finishes until it is killed).
+[ -n "${FAKE_BIN_LOG:-}" ] && printf 'ffmpeg %s\n' "$*" >> "$FAKE_BIN_LOG"
+for a in "$@"; do
+  case "$a" in
+    --dump-env) env; exit 0 ;;
+    -version) echo "ffmpeg version 9.0.2 (fake)"; exit 0 ;;
+  esac
+done
+if [ -n "${FAKE_FFMPEG_PIDS:-}" ]; then
+  sleep 60 &
+  printf 'pids %s %s\n' "$$" "$!" >> "$FAKE_FFMPEG_PIDS"
+fi
+if [ -n "${FAKE_FFMPEG_BYTES:-}" ]; then cat > /dev/null; head -c "$FAKE_FFMPEG_BYTES" /dev/zero; exit 0; fi
+if [ -n "${FAKE_FFMPEG_EXIT:-}" ]; then cat > /dev/null; exit "$FAKE_FFMPEG_EXIT"; fi
+if [ -n "${FAKE_FFMPEG_HANG:-}" ]; then
+  cat > /dev/null
+  [ -n "${FAKE_FFMPEG_PIDS:-}" ] || sleep 60 &
+  wait
+  exit 0
+fi
+cat

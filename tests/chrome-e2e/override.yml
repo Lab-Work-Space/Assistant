@@ -1,0 +1,21 @@
+# TEST ONLY. Merged over docker-compose.chrome.yml by scripts/chrome-e2e.sh (E2E_DIR = this directory).
+services:
+  guardproxy:
+    volumes:
+      - ${E2E_DIR}/wrapper.mjs:/wrap/wrapper.mjs:ro
+    command: ["node", "/wrap/wrapper.mjs"]
+  origin:
+    image: node:24-alpine@sha256:8a32c8cf649a49915a66e81e7a609223c708d0adabf288ee3f4077d765542f85
+    volumes:
+      - ${E2E_DIR}/origin.mjs:/o/origin.mjs:ro
+    command: ["node", "/o/origin.mjs"]
+    read_only: true
+    cap_drop: [ALL]
+    networks:
+      egress:
+        ipv4_address: 10.89.78.10
+networks:
+  egress:
+    ipam:
+      config:
+        - subnet: 10.89.78.0/24

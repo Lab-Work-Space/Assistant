@@ -1,0 +1,10 @@
+# Task 8 AC2 layer: mimics an `lw` without isolated mode. run.sh renders lw_override.jq with no labels (what the old override did:
+# media gets env_file [db env, shared/.env], DB_HOST and extra_hosts like any service) and adds this file on top. T7_ENV is the
+# absolute path of the scratch shared/.env (Gate 1 preflight C12: never a relative env_file, which would resolve against deploy/).
+# restart "no": media must exit 78 once and stay exited, so the exit code is readable instead of flapping.
+services:
+  media:
+    restart: "no"
+    env_file:
+      - path: ${T7_ENV:?T7_ENV must be the absolute path of the scratch shared/.env}
+        required: true

@@ -1,0 +1,23 @@
+ALTER TABLE lessons DROP COLUMN IF EXISTS tainted;
+DROP TABLE IF EXISTS kb_review_runs;
+DROP TABLE IF EXISTS kb_reflections;
+DROP TABLE IF EXISTS kb_proposals;
+DROP TABLE IF EXISTS kb_versions;
+DROP TABLE IF EXISTS kb_docs;
+DELETE FROM admin_cards WHERE kind = 'knowledge';
+ALTER TABLE admin_cards DROP CONSTRAINT IF EXISTS admin_cards_kind_check;
+ALTER TABLE admin_cards ADD CONSTRAINT admin_cards_kind_check CHECK (kind IN ('config', 'admin_op', 'perm', 'server'));
+DROP TRIGGER IF EXISTS prompt_overrides_no_change ON prompt_overrides;
+DROP FUNCTION IF EXISTS prompt_overrides_append_only();
+DROP INDEX IF EXISTS prompt_overrides_ref_version_uq;
+-- back to the old meaning of `active`: only the newest row of a ref, and none when a tombstone is newest
+UPDATE prompt_overrides p SET active = (p.version = (SELECT max(version) FROM prompt_overrides q WHERE q.ref = p.ref) AND NOT p.tombstone);
+DELETE FROM prompt_overrides WHERE tombstone;
+ALTER TABLE prompt_overrides DROP COLUMN IF EXISTS restored_from;
+ALTER TABLE prompt_overrides DROP COLUMN IF EXISTS tombstone;
+DROP INDEX IF EXISTS dept_notes_source_idx;
+DROP INDEX IF EXISTS dept_notes_hash_idx;
+ALTER TABLE dept_notes DROP COLUMN IF EXISTS norm_hash;
+ALTER TABLE dept_notes DROP COLUMN IF EXISTS source;
+ALTER TABLE dept_notes DROP COLUMN IF EXISTS tainted;
+ALTER TABLE dept_notes DROP COLUMN IF EXISTS pinned;

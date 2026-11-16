@@ -1,0 +1,33 @@
+#!/bin/sh
+# Fake yt-dlp (tests only; never a real binary). Appends its argv, one line, to $FAKE_BIN_LOG when set, and each argument
+# NUL-terminated (exact, spaces kept) to $FAKE_ARGV_LOG. `--dump-env` prints its environment, `--version` prints a pinned version.
+# Like the real EJS challenge solver it runs the `--js-runtimes node:<path>` runtime it was given (that child inherits this env);
+# with $FAKE_JS_ENV_OUT set the runtime's output goes there. With $FAKE_YTDLP_HANG set it writes "pids <self> <grandchild>" to
+# that file and keeps streaming until killed (a long track). With $FAKE_YTDLP_STDERR set it writes 600 characters with control
+# characters to stderr and exits 1. Anything else emits canned output.
+[ -n "${FAKE_BIN_LOG:-}" ] && printf 'yt-dlp %s\n' "$*" >> "$FAKE_BIN_LOG"
+if [ -n "${FAKE_ARGV_LOG:-}" ]; then for a in "$@"; do printf '%s\0' "$a"; done >> "$FAKE_ARGV_LOG"; printf '\n' >> "$FAKE_ARGV_LOG"; fi
+js=""
+prev=""
+for a in "$@"; do
+  case "$a" in
+    --dump-env) env; exit 0 ;;
+    --version) echo "2026.10.26"; exit 0 ;;
+  esac
+  [ "$prev" = "--js-runtimes" ] && js="${a#node:}"
+  prev="$a"
+done
+[ -n "${FAKE_JS_ENV_OUT:-}" ] && [ -n "$js" ] && "$js" > "$FAKE_JS_ENV_OUT"
+if [ -n "${FAKE_YTDLP_HANG:-}" ]; then
+  sleep 60 &
+  printf 'pids %s %s\n' "$$" "$!" >> "$FAKE_YTDLP_HANG"
+  printf 'fake-audio'
+  wait
+  exit 0
+fi
+if [ -n "${FAKE_YTDLP_STDERR:-}" ]; then
+  i=0
+  while [ "$i" -lt 60 ]; do printf 'bad\033[31m\001x\n' >&2; i=$((i + 1)); done
+  exit 1
+fi
+printf 'fake-audio'

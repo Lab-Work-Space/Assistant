@@ -1,0 +1,3 @@
+#!/bin/sh
+# Fake JS runtime (tests only): stands in for the node binary yt-dlp's EJS solver runs, and prints the environment it got.
+env

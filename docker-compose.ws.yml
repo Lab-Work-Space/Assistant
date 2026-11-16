@@ -1,0 +1,35 @@
+# WS-1 stack (SA-1 C1, Gate 1 WS-C4). Start: npm run local:ws   (builds dist/ and the images, then `docker compose up`). Stop: npm run local:ws:down
+#
+#   [ws runner, npm ci/install only] --ws_prepnet (internal, no gateway, 10.88.80.0/24)--> [registryproxy 10.88.80.2:4873] --ws_egress_registry--> registry.npmjs.org
+#   every other ws_run command runs with --network none. The runner containers are NOT in this file: workspaces/runner.ts starts them with a fixed argv.
+#   This stack reads no env file and holds no secret; it is separate from docker-compose.devjob.yml on purpose (that one needs DEVJOB_* secrets).
+name: assistant-ws
+services:
+  registryproxy:
+    image: assistant-ws-registryproxy:local
+    init: true
+    user: "65534:65534"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 128
+    mem_limit: 256m
+    cpus: 1
+    tmpfs: ["/tmp:rw,noexec,nosuid,nodev,size=16m"]
+    restart: unless-stopped
+    healthcheck:
+      # Any HTTP answer (the proxy refuses this path with 404) means it is serving.
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:4873/healthz',()=>process.exit(0)).on('error',()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      prepnet: { ipv4_address: 10.88.80.2 }
+      egress-registry: {}
+networks:
+  prepnet:
+    name: ws_prepnet
+    internal: true
+    ipam: { config: [{ subnet: 10.88.80.0/24 }] }
+  egress-registry:
+    name: ws_egress_registry

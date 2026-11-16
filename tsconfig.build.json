@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tests",
+    "vitest.config.ts",
+    "**/*.test.ts",
+    "**/test-helpers.ts",
+    "**/multi-helpers.ts",
+    "**/*-fixture.ts",
+    "**/*.harness.ts"
+  ]
+}

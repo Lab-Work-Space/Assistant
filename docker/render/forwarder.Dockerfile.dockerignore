@@ -1,0 +1,4 @@
+*
+!docker/chrome/package.json
+!dist/net/proxy.js
+!dist/net/forwarder-main.js

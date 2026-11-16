@@ -1,0 +1,12 @@
+# Task 8 acceptance layer, merged AFTER the real lw render (deploy/docker-compose.yml + the override.yml that lw_override.jq wrote).
+# Never deployed. It changes `assistant` only (run.sh asserts the merged `media` is byte-identical with and without this file):
+# the app needs Discord tokens and a database to boot, so its entrypoint is replaced by a stub HTTP listener on 0.0.0.0:8080.
+# The container keeps everything else lw gave it (env_file shared/.env + db env with the planted ZZ_MARKER, user 1000, the ro
+# media-ipc mount, the /opt masks), and the listener gives the S13 "media cannot reach assistant:8080" check a real open port
+# (8080 is published on host loopback by the base file; 8081 is not, as a control for Docker's inter-network isolation).
+services:
+  assistant:
+    entrypoint:
+      - node
+      - -e
+      - "const h=require('http');h.createServer((q,s)=>s.end('ok')).listen(8080,'0.0.0.0');h.createServer((q,s)=>s.end('ok')).listen(8081,'0.0.0.0');process.on('SIGTERM',()=>process.exit(0))"

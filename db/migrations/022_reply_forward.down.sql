@@ -1,0 +1,3 @@
+ALTER TABLE tasks DROP COLUMN IF EXISTS forward_card;
+ALTER TABLE tasks DROP COLUMN IF EXISTS forwards;
+ALTER TABLE bot_messages DROP COLUMN IF EXISTS answer;

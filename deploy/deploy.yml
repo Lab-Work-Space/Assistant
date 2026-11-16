@@ -1,0 +1,6 @@
+name: assistant
+category: apps
+runtime: compose
+service: assistant
+memory: 512M
+health: /healthz

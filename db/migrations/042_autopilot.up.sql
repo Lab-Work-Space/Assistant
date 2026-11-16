@@ -1,0 +1,47 @@
+-- AUTO-1: projects (one confirmation per project) and project-scoped tool grants. Additive only.
+CREATE TABLE projects (
+  id bigserial PRIMARY KEY,
+  token text NOT NULL UNIQUE CHECK (token ~ '^[0-9a-f]{32}$'),
+  title text NOT NULL CHECK (char_length(title) BETWEEN 1 AND 100),
+  goal text NOT NULL CHECK (char_length(goal) BETWEEN 1 AND 1000),
+  owner_dept text NOT NULL DEFAULT 'hq' CHECK (owner_dept ~ '^[a-z_]{1,32}$'),
+  deadline date NOT NULL,
+  max_local_calls integer NOT NULL CHECK (max_local_calls BETWEEN 1 AND 1000000),
+  max_usd numeric(12,6) NOT NULL CHECK (max_usd >= 0 AND max_usd <= 100000),
+  max_approvals integer NOT NULL CHECK (max_approvals BETWEEN 1 AND 1000000),
+  base_local_calls integer NOT NULL CHECK (base_local_calls BETWEEN 1 AND 100000),
+  base_usd numeric(12,6) NOT NULL CHECK (base_usd >= 0 AND base_usd <= 1000),
+  base_approvals integer NOT NULL CHECK (base_approvals BETWEEN 1 AND 5000),
+  approvals_used integer NOT NULL DEFAULT 0 CHECK (approvals_used >= 0),
+  status text NOT NULL DEFAULT 'proposed' CHECK (status IN ('proposed','active','done','cancelled')),
+  paused boolean NOT NULL DEFAULT false,
+  exhausted_at timestamptz,
+  budget_token text UNIQUE CHECK (budget_token IS NULL OR budget_token ~ '^[0-9a-f]{32}$'),
+  budget_channel_id text CHECK (budget_channel_id IS NULL OR budget_channel_id ~ '^[0-9]{17,20}$'),
+  budget_message_id text CHECK (budget_message_id IS NULL OR budget_message_id ~ '^[0-9]{17,20}$'),
+  deadline_noticed_at timestamptz,
+  root_task_id text UNIQUE REFERENCES tasks(id),
+  adopt_ids text[] NOT NULL DEFAULT '{}' CHECK (cardinality(adopt_ids) <= 20),
+  proposer text NOT NULL CHECK (proposer ~ '^(head:hq|user:[0-9]{17,20})$'),
+  tainted boolean NOT NULL DEFAULT false,
+  channel_id text CHECK (channel_id IS NULL OR channel_id ~ '^[0-9]{17,20}$'),
+  message_id text CHECK (message_id IS NULL OR message_id ~ '^[0-9]{17,20}$'),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  expires_at timestamptz NOT NULL,
+  approved_by text CHECK (approved_by IS NULL OR approved_by ~ '^[0-9]{17,20}$'),
+  approved_at timestamptz,
+  closed_by text CHECK (closed_by IS NULL OR closed_by ~ '^(system|[0-9]{17,20})$'),
+  closed_at timestamptz,
+  CONSTRAINT projects_expiry CHECK (expires_at > created_at AND expires_at <= created_at + interval '7 days 1 hour'),
+  CONSTRAINT projects_root CHECK (status IN ('proposed','cancelled') OR root_task_id IS NOT NULL),
+  CONSTRAINT projects_approved CHECK (root_task_id IS NULL OR (approved_by IS NOT NULL AND approved_at IS NOT NULL))
+);
+CREATE INDEX projects_active_idx ON projects (root_task_id) WHERE status = 'active';
+CREATE TABLE project_tools (
+  project_id bigint NOT NULL REFERENCES projects(id),
+  dept_id text NOT NULL CHECK (dept_id ~ '^[a-z_]{1,32}$'),
+  tool text NOT NULL CHECK (tool ~ '^[a-z0-9_]{1,64}$'),
+  task_id text,
+  granted_at timestamptz NOT NULL DEFAULT now(),
+  PRIMARY KEY (project_id, dept_id, tool)
+);

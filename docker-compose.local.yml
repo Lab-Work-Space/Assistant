@@ -1,0 +1,23 @@
+# Local mode database (owner's Mac only). Start:  npm run local:db   Stop:  npm run local:db:down
+# The password is LOCAL_DB_PASSWORD from ~/.config/assistant/env.local (written by `scripts/set-tokens.sh --local`);
+# there is no default and nothing secret is committed. The launcher passes that file with --env-file.
+name: assistant-local   # own compose project: never collides with docker-compose.test.yml (project "assistant")
+services:
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - "127.0.0.1:54330:5432"
+    environment:
+      POSTGRES_DB: assistant
+      POSTGRES_USER: assistant
+      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD:?run scripts/set-tokens.sh --local first}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U assistant -d assistant"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - assistant_local_pgdata:/var/lib/postgresql/data
+volumes:
+  assistant_local_pgdata:
+    name: assistant_local_pgdata

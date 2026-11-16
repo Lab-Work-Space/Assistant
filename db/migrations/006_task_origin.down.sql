@@ -1,0 +1,4 @@
+ALTER TABLE tasks DROP COLUMN IF EXISTS source_user_id;
+ALTER TABLE tasks DROP COLUMN IF EXISTS channel_id;
+ALTER TABLE tasks DROP CONSTRAINT IF EXISTS tasks_origin_check;
+ALTER TABLE tasks DROP COLUMN IF EXISTS origin;

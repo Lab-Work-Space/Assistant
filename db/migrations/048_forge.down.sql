@@ -1,0 +1,21 @@
+ALTER TABLE mcp_servers DROP CONSTRAINT mcp_servers_pin;
+ALTER TABLE mcp_servers ADD CONSTRAINT mcp_servers_pin CHECK (status <> 'active' OR approved_config_sha256 IS NOT NULL);
+-- PF-C20 (documented): deleting release-sourced servers below does not expire their open tool approvals; a task waiting on one stays waiting until it is cancelled or times out.
+DELETE FROM config WHERE key IN ('forge.enabled');
+DELETE FROM dept_incidents WHERE kind = 'forge_failed';
+ALTER TABLE dept_incidents DROP CONSTRAINT dept_incidents_kind_check;
+ALTER TABLE dept_incidents ADD CONSTRAINT dept_incidents_kind_check CHECK (kind IN ('task_blocked','task_cancelled','tool_errors','heal_resolve'));
+DROP TABLE plugin_builds;
+ALTER TABLE releases DROP CONSTRAINT releases_plugin;
+ALTER TABLE releases DROP COLUMN forge_id;
+DROP TABLE plugin_forges;
+DROP INDEX mcp_servers_release_once;
+ALTER TABLE mcp_servers DROP CONSTRAINT mcp_servers_release_write;
+DELETE FROM mcp_servers WHERE source = 'release';
+ALTER TABLE mcp_servers DROP CONSTRAINT mcp_servers_source_check;
+ALTER TABLE mcp_servers ADD CONSTRAINT mcp_servers_source_check CHECK (source IN ('admin'));
+DELETE FROM releases WHERE target = 'install_plugin';
+ALTER TABLE releases DROP COLUMN plugin_manifest_sha256;
+ALTER TABLE releases DROP COLUMN plugin_slug;
+ALTER TABLE releases DROP CONSTRAINT releases_target_check;
+ALTER TABLE releases ADD CONSTRAINT releases_target_check CHECK (target IN ('handoff'));

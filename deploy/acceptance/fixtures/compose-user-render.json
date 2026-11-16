@@ -1,0 +1,159 @@
+{
+  "name": "lw-apps-assistant",
+  "networks": {
+    "default": {
+      "name": "lw-apps-assistant_default",
+      "ipam": {}
+    },
+    "media-egress": {
+      "name": "lw-apps-assistant_media-egress",
+      "ipam": {
+        "config": [
+          {
+            "subnet": "10.213.0.0/24"
+          }
+        ]
+      }
+    }
+  },
+  "services": {
+    "assistant": {
+      "restart": "unless-stopped",
+      "cap_drop": [
+        "ALL"
+      ],
+      "command": null,
+      "entrypoint": null,
+      "environment": {
+        "HEALTH_HOST": "0.0.0.0",
+        "HEALTH_PORT": "8080",
+        "MEDIA_SOCKET": "/run/media-ipc/media.sock",
+        "NODE_ENV": "production",
+        "PRAW_WORKSPACE_DIR": "/app/data/workspace/praw"
+      },
+      "image": "lw-local/apps-assistant:0000000000000000000000000000000000000000",
+      "init": true,
+      "mem_limit": "536870912",
+      "networks": {
+        "default": null
+      },
+      "pids_limit": 128,
+      "read_only": true,
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "stop_grace_period": "20s",
+      "tmpfs": [
+        "/tmp:size=16m,mode=1777,noexec,nosuid",
+        "/opt/ffmpeg:size=4k,mode=0555,noexec,nosuid",
+        "/opt/yt-dlp:size=4k,mode=0555,noexec,nosuid"
+      ],
+      "user": "1000:1000",
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "praw-workspace",
+          "target": "/app/data/workspace/praw",
+          "volume": {}
+        },
+        {
+          "type": "volume",
+          "source": "media-ipc",
+          "target": "/run/media-ipc",
+          "read_only": true,
+          "volume": {}
+        }
+      ],
+      "depends_on": {
+        "media": {
+          "condition": "service_healthy",
+          "required": true
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:'+(process.env.HEALTH_PORT||8080)+'/healthz',{signal:AbortSignal.timeout(4000)}).then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
+        ],
+        "timeout": "5s",
+        "interval": "30s",
+        "retries": 3,
+        "start_period": "40s"
+      },
+      "ports": [
+        {
+          "mode": "ingress",
+          "host_ip": "127.0.0.1",
+          "target": 8080,
+          "published": "4999",
+          "protocol": "tcp"
+        }
+      ]
+    },
+    "media": {
+      "restart": "unless-stopped",
+      "cap_drop": [
+        "ALL"
+      ],
+      "cpus": 1,
+      "command": [
+        "node",
+        "dist/media/main.js"
+      ],
+      "entrypoint": null,
+      "environment": {
+        "MEDIA_SOCKET": "/run/media-ipc/media.sock",
+        "NODE_ENV": "production"
+      },
+      "image": "lw-local/apps-assistant:0000000000000000000000000000000000000000",
+      "init": true,
+      "labels": {
+        "lw.isolated": "true"
+      },
+      "mem_limit": "402653184",
+      "networks": {
+        "media-egress": null
+      },
+      "pids_limit": 64,
+      "read_only": true,
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "stop_grace_period": "10s",
+      "tmpfs": [
+        "/tmp:size=16m,mode=1777,noexec,nosuid"
+      ],
+      "user": "10001:10001",
+      "volumes": [
+        {
+          "type": "volume",
+          "source": "media-ipc",
+          "target": "/run/media-ipc",
+          "volume": {}
+        }
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get({socketPath:process.env.MEDIA_SOCKET,path:'/v1/health',timeout:4000},r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+        ],
+        "timeout": "5s",
+        "interval": "10s",
+        "retries": 3,
+        "start_period": "15s"
+      }
+    }
+  },
+  "volumes": {
+    "media-ipc": {
+      "name": "lw-apps-assistant_media-ipc"
+    },
+    "praw-workspace": {
+      "name": "lw-apps-assistant_praw-workspace"
+    }
+  }
+}

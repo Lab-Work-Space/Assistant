@@ -1,0 +1,4 @@
+# REPO= sources of infra/vps/files/lw-git/apps/*/app.conf, written by scripts/gen-deploy-denylist.ts
+Lab-Work-Space/Labworkspace_backend
+Lab-Work-Space/Assistant
+Lab-Work-Space/Labworkspace_frontend

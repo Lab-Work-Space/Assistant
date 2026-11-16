@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS server_archives;
+DROP TABLE IF EXISTS welcome_seen;
+DROP TABLE IF EXISTS exec_outbox;
+DROP TABLE IF EXISTS exec_state;
+DROP INDEX IF EXISTS audit_log_action_ts_idx;
+ALTER TABLE admin_cards DROP COLUMN IF EXISTS executed_at;
+ALTER TABLE admin_cards DROP COLUMN IF EXISTS via;
+DELETE FROM admin_cards WHERE kind = 'server';
+ALTER TABLE admin_cards DROP CONSTRAINT IF EXISTS admin_cards_kind_check;
+ALTER TABLE admin_cards ADD CONSTRAINT admin_cards_kind_check CHECK (kind IN ('config', 'admin_op', 'perm'));

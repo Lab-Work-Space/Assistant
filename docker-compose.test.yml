@@ -1,0 +1,11 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - "127.0.0.1:54329:5432"
+    environment:
+      POSTGRES_DB: assistant_test
+      POSTGRES_USER: assistant_test
+      POSTGRES_PASSWORD: assistant_test
+    tmpfs:
+      - /var/lib/postgresql/data

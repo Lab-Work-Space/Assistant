@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS bot_messages;
+ALTER TABLE tasks DROP COLUMN IF EXISTS tainted;

@@ -1,0 +1,102 @@
+# Overlay compose for apps/assistant. Image is built on the server by lw-git (never pulled). Two services, one image:
+# - assistant (first; the deploy.yml service): outbound-only (Discord, Anthropic, PostgreSQL). The only published port is the health
+#   endpoint, on host loopback (lw compose policy: `127.0.0.1:${PORT}`); the app listens on 0.0.0.0 inside the container so that
+#   mapping can reach it. Secrets (10 bot tokens, ANTHROPIC_API_KEY, GEMINI_API_KEY, CONFIG_MASTER_KEY, DATABASE_URL,
+#   BOT_ADMIN_ROLE_ID) come from the platform's shared/.env (mode 0600 root; `lw env set apps/assistant KEY`), never from the image
+#   or the repo.
+# - media (Praw media sidecar: yt-dlp + ffmpeg) holds no secrets: it is labelled lw.isolated, so lw gives it no env_file,
+#   environment or extra_hosts, and it exits 78 on any env key outside media/main.ts ENV_ALLOW. It is reached only over the unix
+#   socket on the media-ipc volume (read-only in assistant), shares no network with assistant, and its media-egress subnet lies outside
+#   172.30.0.0/16, the lw docker pool that nftables and pg_hba trust (Gate 1 S5/S13). The app container masks /opt/ffmpeg and
+#   /opt/yt-dlp with empty noexec tmpfs, so only media can run them.
+services:
+  assistant:
+    image: lw-local/apps-assistant:${IMAGE_TAG}
+    environment:
+      NODE_ENV: production
+      HEALTH_PORT: "8080"
+      HEALTH_HOST: "0.0.0.0"
+      PRAW_WORKSPACE_DIR: /app/data/workspace/praw
+      MEDIA_SOCKET: /run/media-ipc/media.sock
+    ports:
+      - "127.0.0.1:${PORT}:8080"
+    user: "1000:1000"
+    # Reaps zombies: killing a yt-dlp process group leaves its node child (the YouTube challenge runtime) to be adopted by PID 1.
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777,noexec,nosuid
+      - /opt/ffmpeg:size=4k,mode=0555,noexec,nosuid
+      - /opt/yt-dlp:size=4k,mode=0555,noexec,nosuid
+    # P18: Praw's workspace is the only writable path (read_only root). The image creates the mount point owned by node,
+    # mode 0700, and Docker copies that onto the fresh named volume. The 50 MB / 500 file quota is enforced by the app.
+    volumes:
+      - praw-workspace:/app/data/workspace/praw
+      - media-ipc:/run/media-ipc:ro
+    depends_on:
+      media:
+        condition: service_healthy
+    mem_limit: 512m
+    pids_limit: 128
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    stop_grace_period: 20s
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:'+(process.env.HEALTH_PORT||8080)+'/healthz',{signal:AbortSignal.timeout(4000)}).then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
+
+  media:
+    image: lw-local/apps-assistant:${IMAGE_TAG}
+    command: ["node", "dist/media/main.js"]
+    labels:
+      lw.isolated: "true"
+    environment:
+      NODE_ENV: production
+      MEDIA_SOCKET: /run/media-ipc/media.sock
+    user: "10001:10001"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777,noexec,nosuid
+    # The image creates /run/media-ipc owned 10001:10001 mode 0755; a fresh named volume copies that whichever container starts first.
+    volumes:
+      - media-ipc:/run/media-ipc
+    networks: [media-egress]
+    mem_limit: 384m
+    pids_limit: 64
+    cpus: "1.0"
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    stop_grace_period: 10s
+    # assistant waits for this (depends_on service_healthy) inside `lw compose-up`; the first probe runs one interval after start.
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "require('http').get({socketPath:process.env.MEDIA_SOCKET,path:'/v1/health',timeout:4000},r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+networks:
+  # Gate 1 S13 (b): outside 172.30.0.0/16, so the nft accepts for 172.30.0.1 (:443 Caddy, File Browser, bridge ports) and pg_hba's
+  # 172.30.0.0/16 lines never match media. Docker still masquerades it for outbound HTTPS (yt-dlp).
+  media-egress:
+    ipam:
+      config:
+        - subnet: 10.213.0.0/24
+
+volumes:
+  praw-workspace: {}
+  media-ipc: {}

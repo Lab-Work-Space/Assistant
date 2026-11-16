@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS lessons;
+DROP TABLE IF EXISTS watches;
+DROP TABLE IF EXISTS scheduled_jobs;
+DROP TABLE IF EXISTS reminders;

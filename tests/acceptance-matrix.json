@@ -1,0 +1,222 @@
+{
+  "_comment": "Acceptance AC1-14 and Gate 1 P1-P24 mapped to real tests. Id format: \"<file> :: <exact test title>\". tests/integration/praw-m5.int.test.ts asserts every id exists.",
+  "acceptance": {
+    "1": [
+      "tests/integration/praw-m1.int.test.ts :: AC1 › @praw in the sandbox channel → reply via gemini fake, persona markers in the system prompt, usage/cost row visible to /usage"
+    ],
+    "2": [
+      "tests/integration/praw-delegation.int.test.ts :: AC2 › \"ฝากทีม Marketing…\" → child owned by marketing (requester praw) in marketing's work channel; done report in Praw's thread by Praw; roll-up answers the human"
+    ],
+    "3": [
+      "tests/integration/praw-delegation.int.test.ts :: AC3 › CEO create_task dept praw → Praw owner runs in her work-channel thread and reports to hq's requester thread",
+      "tests/integration/praw-delegation.int.test.ts :: AC3 › no praw work channel → create_task refused cleanly (R1)"
+    ],
+    "4": [
+      "tests/integration/praw-m1.int.test.ts :: AC4 › 429/5xx fake stream retries then answers",
+      "tests/integration/praw-m1.int.test.ts :: AC4 › /halt during a fake stream stops within 2000 ms",
+      "tests/integration/praw-m1.int.test.ts :: AC4 › model calls an unknown tool name → refused result, loop continues, audit unknown_tool"
+    ],
+    "5": [
+      "net/guard.test.ts :: public URL redirecting to http://127.0.0.1 is refused at the hop (AC5)",
+      "net/ssrf.net.test.ts :: public URL redirecting to http://127.0.0.1 is refused at the hop (AC5); 127.0.0.1 sees zero connections",
+      "tests/integration/praw-m2.int.test.ts :: Praw fetch_page on 127.0.0.1, 169.254.169.254 and a redirecting public URL (fakes) refuses all three"
+    ],
+    "6": [
+      "tools/plugins/reminders/reminders.int.test.ts :: reminder due in 2 min fires once in the right channel with a user mention (AC6, fake clock)",
+      "tests/integration/praw-m2.int.test.ts :: \"ช่วยเตือน อีก 2 นาที\" via fake Gemini → add_reminder → worker fires once with mention"
+    ],
+    "7": [
+      "scripts/import-discord-bot.test.ts :: --apply inserts; second --apply inserts 0 (AC7)",
+      "tests/integration/praw-m2.int.test.ts :: import dry-run then apply then apply (0)"
+    ],
+    "8": [
+      "tools/plugins/workspace/workspace.test.ts :: symlink component refused (AC8)",
+      "tests/integration/praw-m2.int.test.ts :: write_file via symlink and ../ refused through the real registry",
+      "tests/integration/praw-workspace.int.test.ts :: a path outside the workspace is refused as invalid input: no file, no approval"
+    ],
+    "9": [
+      "tests/integration/praw-schedule.int.test.ts :: runner › write tool inside a scheduled run goes awaiting_approval (feeds AC9)",
+      "tests/integration/praw-m3.int.test.ts :: m3 › same instruction reached via a scheduled run asks approval for each write",
+      "tests/integration/approvals.int.test.ts :: human→head→praw grandchild clickup_create awaits approval",
+      "tests/integration/praw-m3.int.test.ts :: m3 › Praw delegated \"create the ClickUp tasks for this plan\" (CEO task dept praw, fake Gemini; depth>0, so delegated) asks approval for each write and runs the stored calls once after approval"
+    ],
+    "10": [
+      "tests/integration/praw-github.int.test.ts :: allowlisted by /github allow, the write waits for approval, the stored call runs once",
+      "tests/integration/praw-github.int.test.ts :: a repo that is not on the allowlist is refused before any approval row exists",
+      "tools/plugins/github/github.test.ts :: github.test.ts › write to default branch refused"
+    ],
+    "11": [
+      "tests/integration/praw-m4.int.test.ts :: /receipt › returns table + CSV (AC11 read half): CSV file posted in the channel, table in the answer",
+      "tests/integration/secrets-plant.int.test.ts :: secrets-plant › GOOGLE_SHEETS_WEBAPP_SECRET absent from audit rows, logs, embeds and the model input; it only travels in the POST body",
+      "tools/plugins/ocr/m4.test.ts :: names sheets_append_receipt only when the actor may call it (finance stays read-only by default)"
+    ],
+    "12": [
+      "tests/integration/praw-m5.int.test.ts :: AC12a › /play <search> (fake yt-dlp/ffmpeg/voice) plays and /skip advances",
+      "voice/chat/pipeline.test.ts :: reply spoken, music ducked during playback and restored after (AC12b)"
+    ],
+    "13": [
+      "tests/integration/voice.int.test.ts :: /voice join then fake speech → fake Gemini reply → fake TTS buffer → session.play (spoken Thai reply)",
+      "tests/integration/voice.int.test.ts :: /halt stops pipeline and leaves the channel",
+      "tests/integration/boot.int.test.ts :: halt disconnects voice through the app bus",
+      "tests/integration/praw-m5.int.test.ts :: m5 › full flow with fakes: /voice join, spoken question that triggers web_search, spoken answer, /play during, ducking, /halt leaves"
+    ],
+    "14": [
+      "tests/no-network.test.ts :: fetch and net.connect throw in unit tests (setup file active)",
+      "tests/integration/praw-m5.int.test.ts :: m5 › no external call in the whole suite (no-network guard active)",
+      "tests/integration/praw-m5.int.test.ts :: m5 › all tool schemas (every plugin) convert for Gemini; tool names unique; praw policy covers all"
+    ]
+  },
+  "gate1": {
+    "P1": [
+      "agents/loop/loop.origin.test.ts :: origin comes from task row, tool input origin ignored",
+      "agents/loop/loop.origin.test.ts :: schedule run has origin schedule, not human"
+    ],
+    "P2": [
+      "tests/integration/approvals.int.test.ts :: human→head→praw grandchild clickup_create awaits approval",
+      "tests/integration/approvals.int.test.ts :: fetch_page then clickup_update_task awaits approval",
+      "tests/integration/praw-schedule.int.test.ts :: runner › write tool inside a scheduled run goes awaiting_approval (feeds AC9)"
+    ],
+    "P3": [
+      "governance/approval/approvals.int.test.ts :: approved delete X cannot run delete Y",
+      "governance/approval/approvals.int.test.ts :: digest reuse refused (executed digest, or stored input whose sha256 no longer matches)",
+      "discord/embeds.test.ts :: shows the validated input, not model text; D7-escaped, allowedMentions none",
+      "tests/integration/approvals.int.test.ts :: approved fetch whose host now resolves private is refused"
+    ],
+    "P4": [
+      "net/ssrf.net.test.ts :: public URL redirecting to http://127.0.0.1 is refused at the hop (AC5); 127.0.0.1 sees zero connections",
+      "net/guard.test.ts :: public URL redirecting to http://127.0.0.1 is refused at the hop (AC5)"
+    ],
+    "P5": [
+      "agents/loop/loop.test.ts :: tainted run fetching a model-invented URL awaits approval; a URL from the human message or an earlier search result does not"
+    ],
+    "P6": [
+      "tools/plugins/github/github.test.ts :: github.test.ts › write to Labworkspace_backend refused even if allowlisted",
+      "tools/plugins/github/github.test.ts :: github.test.ts › renamed repo redirect to Assistant refused",
+      "tools/plugins/github/github.test.ts :: github.test.ts › write to default branch refused",
+      "tools/plugins/github/github.test.ts :: github.test.ts › .github/workflows path refused",
+      "tools/plugins/github/github.test.ts :: github.test.ts › token request scoped to one repo",
+      "tools/plugins/github/deny.test.ts :: deny › every REPO= line in infra/vps/files/lw-git/apps/*/app.conf is denied"
+    ],
+    "P7": [
+      "voice/music/music.test.ts :: search \"-o /app/x\" stays after -- with ytsearch1:",
+      "voice/music/music.test.ts :: http://10.0.0.1/a.m3u8 and any non-allowlisted host refused",
+      "voice/music/music.test.ts :: ffmpeg argv has protocol_whitelist pipe and pipe:0 input",
+      "voice/music/music.test.ts :: /halt: the whole process group (yt-dlp and its own child) is gone within 2 s"
+    ],
+    "P8": [
+      "core/spawn-env.test.ts :: every child env equals its allowlist; grep finds no spawn/execFile without an explicit env",
+      "core/spawn-env.test.ts :: yt-dlp, ffmpeg and any JS runtime child env equals its allowlist",
+      "providers/claude-code-local/local.test.ts :: child env keys equal the L2 allowlist with the seed containing BOT_TOKEN_*, GEMINI_API_KEY, CLICKUP_API_TOKEN, JIRA_API_TOKEN, GITHUB_APP_PRIVATE_KEY, GOOGLE_SHEETS_WEBAPP_SECRET, DATABASE_URL, CONFIG_MASTER_KEY, NODE_OPTIONS"
+    ],
+    "P9": [
+      "tools/plugins/clickup/clickup.test.ts :: task id \"../user\" rejected",
+      "tools/plugins/clickup/clickup.test.ts :: out-of-scope list refused",
+      "tools/plugins/clickup/clickup.test.ts :: error result has no Authorization header",
+      "net/egress.test.ts :: only net/ and tests/ import net/fetch (tools use net/guard, which binds the real address predicate)"
+    ],
+    "P10": [
+      "core/logger.test.ts :: masks PEM, AIza, key= query, JWT, cookie lines; sanitize is idempotent; delimiter variants",
+      "core/logger.test.ts :: logger › masks pk_ tokens",
+      "core/logger.test.ts :: logger › masks ATATT tokens",
+      "core/logger.test.ts :: logger › masks ghs_/ghp_ tokens and PEM blocks",
+      "core/logger.test.ts :: sanitize is idempotent"
+    ],
+    "P11": [
+      "providers/gemini/gemini.test.ts :: request has only functionDeclarations and the converted contents",
+      "providers/gemini/gemini.test.ts :: thought part is not emitted as text",
+      "providers/gemini/gemini.test.ts :: usage with thoughtsTokenCount only is charged as output",
+      "providers/gemini/gemini.test.ts :: 400 retry reserves twice (beforeRetry called once)",
+      "agents/loop/loop.test.ts :: reserve throws makes zero provider calls"
+    ],
+    "P12": [
+      "tests/readme.test.ts :: Gemini data terms (P12)",
+      "tests/readme.test.ts :: Voice chat: audio goes to Google, reply text to Microsoft (Edge TTS), opt-in, memory only (P12, P20, AC13)"
+    ],
+    "P13": [
+      "prompts/assemble.test.ts :: assemble › lessons are wrapped untrusted (kind lesson, never in system text), capped at lessons.promptChars, newest first",
+      "discord/praw/lesson.test.ts :: commands › /lesson add by non-admin refused; remove by non-admin refused",
+      "tools/plugins/lessons/tool.test.ts :: tool › tainted save_lesson awaits approval; direct untainted save_lesson does not"
+    ],
+    "P14": [
+      "tools/plugins/reminders/reminders.int.test.ts :: cancel another user's reminder refused",
+      "tools/plugins/reminders/reminders.int.test.ts :: 21st reminder refused",
+      "tools/plugins/reminders/reminders.int.test.ts :: fire in now-denied channel skipped (P14)",
+      "tools/plugins/reminders/reminders.int.test.ts :: reminder text with @everyone does not ping"
+    ],
+    "P15": [
+      "agents/scheduler/scheduler.test.ts :: 21st praw request in 10 min refused with one notice, 22nd silent",
+      "discord/praw/ocr.test.ts :: caps.test › /ocr over limits.visionPerUserDay refused (P15): ephemeral, no model call, no Praw slot"
+    ],
+    "P16": [
+      "prompts/loader.test.ts :: tools:[\"*\"] outside heads/praw.md rejected",
+      "tools/policy.test.ts :: head without byDept entry denied clickup_create_task",
+      "tools/builtin/delegation.test.ts :: member without View Channel on the target department's channels cannot delegate via praw (create_task refused; uses DiscordPort.canMemberView)",
+      "discord/inbound.test.ts :: unknown bot is foreign_bot"
+    ],
+    "P17": [
+      "discord/clients.test.ts :: only praw client has GuildVoiceStates (P17); never in the shared INTENTS",
+      "discord/perm/permissions.test.ts :: praw guild-wide Manage Messages flagged; praw client holds no Administrator"
+    ],
+    "P18": [
+      "tools/plugins/workspace/workspace.test.ts :: ../ and absolute refused",
+      "tools/plugins/workspace/workspace.test.ts :: symlink component refused (AC8)",
+      "tools/plugins/workspace/workspace.test.ts :: symlink swapped in after check refused",
+      "tools/plugins/workspace/workspace.test.ts :: quota exceeded refused (1 MB file, 50 MB, 500 files)"
+    ],
+    "P19": [
+      "tools/plugins/ocr/receipt.test.ts :: cell \"=IMPORTXML(...)\" exported as text, also for tab/CR-prefixed cells",
+      "services/attachments.test.ts :: .png with PDF magic handled as PDF, .png with EPS refused",
+      "services/attachments.test.ts :: 11 MB streamed body refused"
+    ],
+    "P20": [
+      "voice/chat/voice.test.ts :: non-opted-in user stream not sent to STT (discarded undecoded)",
+      "voice/chat/voice.test.ts :: no file created under data/ or /tmp during a session",
+      "voice/chat/voice.test.ts :: invoker leaves → disconnect; idle timeout and max length disconnect",
+      "tests/integration/voice.int.test.ts :: /voice join then fake speech → fake Gemini reply → fake TTS buffer → session.play (spoken Thai reply)",
+      "tests/integration/voice.int.test.ts :: transcript not in audit rows; origin voice so a write tool awaits approval"
+    ],
+    "P21": [
+      "scripts/import-discord-bot.int.test.ts :: dry-run output has counts only",
+      "scripts/import-discord-bot.int.test.ts :: lesson imported disabled",
+      "scripts/import-discord-bot.int.test.ts :: private watch URL imported disabled",
+      "scripts/import-discord-bot.test.ts :: --apply inserts; second --apply inserts 0 (AC7)"
+    ],
+    "P22": [
+      "tests/integration/boot.int.test.ts :: wrong yt-dlp sha256 disables music with alert (P22); boot continues",
+      "tests/readme.test.ts :: Retiring Discord_bot: ordered cutover, P23 revocations, Gate 2 SBOM scan"
+    ],
+    "P23": [
+      "tests/readme.test.ts :: Retiring Discord_bot: ordered cutover, P23 revocations, Gate 2 SBOM scan",
+      "tests/readme.test.ts :: Voice and music: AC12/AC13 live, DAVE readiness, YouTube/cookies, Edge TTS text fallback, opt-in, idle"
+    ],
+    "P24": [
+      "tests/integration/secrets-plant.int.test.ts :: secrets-plant › every env key planted across M1-M5 is absent from audit rows, logs and embeds",
+      "tests/integration/secrets-plant.int.test.ts :: secrets-plant › PEM 0644 refused",
+      "tests/integration/secrets-plant.int.test.ts :: planted GEMINI_API_KEY and BOT_TOKEN_PRAW are absent from audit rows, captured logs and embeds",
+      "tests/integration/secrets-plant.int.test.ts :: secrets-plant › CLICKUP/GITHUB keys, PEM contents and minted tokens planted together, absent from audit rows, logs, embeds (write path)"
+    ]
+  },
+  "notes": {
+    "P3": "Gate 1 names `approvals.int.test.ts` and `embeds.test.ts`: the approvals tests live in governance/approval/approvals.int.test.ts (store/digest) and tests/integration/approvals.int.test.ts (chains); the embed test is titled \"shows the validated input, not model text; ...\" in discord/embeds.test.ts.",
+    "P4": "The ssrf.test.ts vectors landed as net/ssrf.net.test.ts (real loopback servers, `net` project) plus net/guard.test.ts (socket-free).",
+    "P5": "Gate 1 name \"tainted run fetching model-invented URL awaits approval\" is agents/loop/loop.test.ts (not loop.test.ts at the root).",
+    "P9": "The \"grep test\" is net/egress.test.ts: only net/ and tests/ import net/fetch.",
+    "P10": "The Gate 1 name \"masks PEM, AIza, pk_, ATATT, ghs_, key= query\" was split into one test per token family in core/logger.test.ts.",
+    "P12": "Doc review is tests/readme.test.ts; the owner confirmation of a billing-enabled project (O1) is not testable.",
+    "P15": "Owner-accepted deviation: the Praw counter test is \"21st praw request in 10 min refused ...\" (20 per 10 min), not \"6th /ask\". The /ocr daily cap is discord/praw/ocr.test.ts (title prefix caps.test).",
+    "P16": "tools:[\"*\"] outside heads/praw.md rejected is prompts/loader.test.ts; member without View Channel is tools/builtin/delegation.test.ts.",
+    "P22": "The Gate 2 scanner output (binary-aware SBOM scan with a positive control, npm audit --omit=dev) is a release step, not a test: README \"Retiring Discord_bot\" step 8.",
+    "P23": "Live checks and key revocations are owner steps: README \"Voice and music\" live check and \"Retiring Discord_bot\".",
+    "P24": "The M1-M5 aggregate test found a real gap (port redaction did not mask literal env secrets); fixed in discord/port.ts + app.ts secretsOf.",
+    "5": "Acceptance 5: the T24 \"AC5 e2e\" is the praw-m2 three-vector fetch_page test; the real-socket proof is net/ssrf.net.test.ts.",
+    "6": "Acceptance 6: no test is titled \"AC6 e2e\"; the fake-clock reminder test and the praw-m2 worker test cover it.",
+    "7": "Acceptance 7: dry-run/apply/apply(0) is covered by scripts/import-discord-bot.test.ts and the praw-m2 import test.",
+    "8": "Acceptance 8: no test is titled \"AC8 e2e\"; workspace.test.ts (AC8) and the praw-m2/praw-workspace tests through the real registry cover it.",
+    "9": "Acceptance 9: T26 \"AC9 ...\" tests are titled by their behaviour (scheduled run, delegated create_task asks approval); mapped to the real titles.",
+    "10": "Acceptance 10: T30 \"AC10\" tests are praw-github.int.test.ts.",
+    "11": "Acceptance 11: the write half (approved Sheets append) is the secrets-plant Sheets test, which approves and runs the export once.",
+    "12": "Acceptance 12: AC12a is the music test in this file, AC12b (duck, no skip) is voice/chat/pipeline.test.ts.",
+    "13": "Acceptance 13: live DAVE readiness with Praw alone in a channel is an owner check (README \"Voice and music\").",
+    "14": "Acceptance 14: unit project loads the no-network setup file; the int project has a per-file guard in praw-m5.int.test.ts."
+  }
+}

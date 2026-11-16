@@ -1,0 +1,89 @@
+# Media sidecar for music and voice (owner's Mac only). Start: npm run local:media   Stop: npm run local:media:down
+# Gate 1 LM1-LM9 (docs/security/2026-11-02-gate1-local-media.md); design: docs/superpowers/specs/2026-11-02-local-media-sidecar-design.md.
+#
+#   app (native) --unix ~/.config/assistant/media/media.sock--> host relay (native) --TCP 127.0.0.1:9225 + token line-->
+#   [mediarelay] --unix /run/media-ipc/media.sock (shared volume, read-only here)--> [media]
+#
+# `media` is the production sidecar with the production hardening of deploy/docker-compose.yml; nothing is published from it and it
+# shares no network with `mediarelay`. `mediarelay` publishes ONLY 127.0.0.1:9225 and refuses any connection without the per-boot token.
+# Residual (LM6): `media-relay` cannot be `internal` because port publishing needs a gateway, so mediarelay has outbound routes;
+# it holds only the token and a socket. The image is built by scripts/dev.sh (DOCKER_BUILDKIT=0 docker build -f deploy/Dockerfile).
+# This file is not given the env file on purpose: nothing from ~/.config/assistant reaches either container.
+name: assistant-media
+services:
+  media:
+    image: assistant-media:local
+    command: ["node", "dist/media/main.js"]
+    environment:
+      NODE_ENV: production
+      MEDIA_SOCKET: /run/media-ipc/media.sock
+    user: "10001:10001"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777,noexec,nosuid
+    volumes:
+      - media-ipc:/run/media-ipc
+    networks: [media-egress]
+    mem_limit: 384m
+    pids_limit: 64
+    cpus: "1.0"
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    stop_grace_period: 10s
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "require('http').get({socketPath:process.env.MEDIA_SOCKET,path:'/v1/health',timeout:4000},r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+  mediarelay:
+    image: assistant-media:local
+    command: ["node", "dist/media/relay-container.js"]
+    environment:
+      NODE_ENV: production
+      MEDIA_SOCKET: /run/media-ipc/media.sock
+      MEDIA_RELAY_TOKEN: ${MEDIA_RELAY_TOKEN:?run through scripts/dev.sh media up (it mints the per-boot token)}
+    user: "10002:10002"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:size=16m,mode=1777,noexec,nosuid
+    volumes:
+      - media-ipc:/run/media-ipc:ro
+    depends_on:
+      media:
+        condition: service_healthy
+    networks: [media-relay]
+    ports:
+      - "127.0.0.1:9225:9225"
+    mem_limit: 384m
+    pids_limit: 64
+    cpus: "1.0"
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    stop_grace_period: 10s
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "const c=require('net').connect(9225,'127.0.0.1',()=>{c.destroy();process.exit(0)});c.on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+networks:
+  media-egress: {}
+  media-relay: {}
+
+volumes:
+  media-ipc: {}
