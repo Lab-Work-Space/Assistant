@@ -1,6 +1,6 @@
 # Media sidecar local acceptance kit (plan Task 8)
 
-Two-container acceptance of the Praw media sidecar on a local Docker host (the owner Mac). It never touches the VPS and never uses a real token or secret. The live server steps (deploy order, AC1 on the server, host-port S13 checks, AC6 in Discord, owner lines) are in the root README, section "Media sidecar — deploy and live checks".
+Two-container acceptance of the Praw media sidecar on a local Docker host (the owner Mac). It never touches the VPS and never uses a real token or secret. The live server steps (deploy order, AC1 on the server, host-port S13 checks, AC6 in Discord, owner lines) are in docs/operations/media-sidecar-live-checks.md ("Media sidecar: deploy and live checks").
 
 ## Run
 

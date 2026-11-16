@@ -52,7 +52,7 @@ type EdgeClient = {
  * msedge-tts 2.1.1 (pinned, task-37-report Step 0): one WebSocket per reply to the fixed Microsoft endpoint
  * `wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1` (nothing user-influenced: not the host, not the
  * path). Only `setMetadata` + `toStream` are used: never `toFile` (writes files) and never `getVoices` (axios). The reply text goes
- * to Microsoft (README). Bounded by a byte cap and a wall-clock timeout; the client is closed after every reply.
+ * to Microsoft (docs/features/media-music-voice.md#voice-and-music). Bounded by a byte cap and a wall-clock timeout; the client is closed after every reply.
  */
 export function edgeSynth(o: { capBytes?: number; timeoutMs?: number; load?: () => Promise<EdgeModule> } = {}): EdgeSynth {
   const cap = o.capBytes ?? MP3_CAP;

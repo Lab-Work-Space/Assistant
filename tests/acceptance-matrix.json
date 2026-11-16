@@ -205,8 +205,8 @@
     "P12": "Doc review is tests/readme.test.ts; the owner confirmation of a billing-enabled project (O1) is not testable.",
     "P15": "Owner-accepted deviation: the Praw counter test is \"21st praw request in 10 min refused ...\" (20 per 10 min), not \"6th /ask\". The /ocr daily cap is discord/praw/ocr.test.ts (title prefix caps.test).",
     "P16": "tools:[\"*\"] outside heads/praw.md rejected is prompts/loader.test.ts; member without View Channel is tools/builtin/delegation.test.ts.",
-    "P22": "The Gate 2 scanner output (binary-aware SBOM scan with a positive control, npm audit --omit=dev) is a release step, not a test: README \"Retiring Discord_bot\" step 8.",
-    "P23": "Live checks and key revocations are owner steps: README \"Voice and music\" live check and \"Retiring Discord_bot\".",
+    "P22": "The Gate 2 scanner output (binary-aware SBOM scan with a positive control, npm audit --omit=dev) is a release step, not a test: docs/deployment/cutover/retiring-discord-bot.md#retiring-discord_bot step 8.",
+    "P23": "Live checks and key revocations are owner steps: docs/features/media-music-voice.md#voice-and-music live check and docs/deployment/cutover/retiring-discord-bot.md#retiring-discord_bot.",
     "P24": "The M1-M5 aggregate test found a real gap (port redaction did not mask literal env secrets); fixed in discord/port.ts + app.ts secretsOf.",
     "5": "Acceptance 5: the T24 \"AC5 e2e\" is the praw-m2 three-vector fetch_page test; the real-socket proof is net/ssrf.net.test.ts.",
     "6": "Acceptance 6: no test is titled \"AC6 e2e\"; the fake-clock reminder test and the praw-m2 worker test cover it.",
@@ -216,7 +216,7 @@
     "10": "Acceptance 10: T30 \"AC10\" tests are praw-github.int.test.ts.",
     "11": "Acceptance 11: the write half (approved Sheets append) is the secrets-plant Sheets test, which approves and runs the export once.",
     "12": "Acceptance 12: AC12a is the music test in this file, AC12b (duck, no skip) is voice/chat/pipeline.test.ts.",
-    "13": "Acceptance 13: live DAVE readiness with Praw alone in a channel is an owner check (README \"Voice and music\").",
+    "13": "Acceptance 13: live DAVE readiness with Praw alone in a channel is an owner check (docs/features/media-music-voice.md#voice-and-music).",
     "14": "Acceptance 14: unit project loads the no-network setup file; the int project has a per-file guard in praw-m5.int.test.ts."
   }
 }

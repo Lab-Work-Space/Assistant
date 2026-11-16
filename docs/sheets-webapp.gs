@@ -1,5 +1,5 @@
 /**
- * Google Apps Script web app for Praw's `sheets_append_receipt` (README "Receipts and Google Sheets").
+ * Google Apps Script web app for Praw's `sheets_append_receipt` (docs/features/documents-and-receipts.md#receipts-and-google-sheets-m4-task-33).
  * Contract: POST JSON {secret, worksheet, rows}. The secret is compared with the Script Property SHEETS_SECRET.
  * Setup: a standalone or bound script. Set the Script Properties SHEETS_SECRET and, for a standalone script, SPREADSHEET_ID
  * (the id in the sheet's URL). Then Deploy > New deployment > Web app, Execute as: Me, Who has access: Anyone. Use the /exec URL.

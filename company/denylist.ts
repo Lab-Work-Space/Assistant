@@ -9,7 +9,7 @@ export function isDenied(channelId: string, parentChannelId: string | null): boo
 /**
  * Gate 1 C17 (admin console, Discord permission ops). Praw cannot see the DENIED channels or their overwrites (a fetch there is meant to fail),
  * so what she must never reach comes from these owner-maintained constants, never from live discovery. They are empty on purpose: permission
- * ops stay OFF (with an alert) until the owner fills all three in and the boot check confirms each id (README, "Permission ops, owner steps").
+ * ops stay OFF (with an alert) until the owner fills all three in and the boot check confirms each id (docs/features/admin-console-and-server-management.md#owner-steps-once-in-this-order-1).
  */
 /** The parent categories of every DENIED channel above. No op may name them, create a channel in them or change their overwrites. */
 export const DENIED_CATEGORY_IDS: readonly string[] = ['1565714470192291970']; // 💻 IT GENERAL & INFRASTRUCTURE (parent of #🔑-system-credentials; #moderator-only has no category)

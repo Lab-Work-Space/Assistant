@@ -7,10 +7,10 @@
 # grype (the local binary) on IMAGE, and syft v1.55.0 (the anchore/syft image, pinned tag) on a `docker save` archive of IMAGE in
 # a scratch dir mounted read-only (no docker socket is given to the scanner). Prints every grype row, then the checks:
 # no ffmpeg, glib, cjson or alsa row; whether syft catalogued /opt/ffmpeg (S10: it cannot see a hand-built static binary, so the
-# README P22 fix table is the evidence). Exit 1 if a forbidden row is present, if any row is High or Critical, or if a
-# Medium-or-higher CVE is not one of the owner residuals in RESIDUALS (README "Owner lines").
+# docs/operations/media-binaries.md P22 fix table is the evidence). Exit 1 if a forbidden row is present, if any row is High or Critical, or if a
+# Medium-or-higher CVE is not one of the owner residuals in RESIDUALS (docs/operations/media-sidecar-live-checks.md "Owner lines").
 set -uo pipefail
-# Accepted residuals (Gate 1 S14 / README owner lines): ffmpeg RTSP (owner, 2026-11-01), busybox, yt-dlp-bundled python.
+# Accepted residuals (Gate 1 S14 / owner lines in docs/operations/media-sidecar-live-checks.md): ffmpeg RTSP (owner, 2026-11-01), busybox, yt-dlp-bundled python.
 RESIDUALS='["CVE-2026-107696","CVE-2025-60876","CVE-2025-15367","CVE-2026-103995"]'
 rc=0
 res() { echo "$1 $2"; [ -z "${ACC_RES:-}" ] || echo "$1 $2" >>"$ACC_RES"; [ "$1" != FAIL ] || rc=1; }

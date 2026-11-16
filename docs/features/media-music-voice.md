@@ -1,0 +1,50 @@
+# Media, music and voice
+
+The media sidecar, image generation, music playback and voice chat, with the owner's live checks.
+
+## Media containers and images
+
+- **Media (`npm run local:media`):** a secret-free container for yt-dlp and ffmpeg (music and voice), reached from the app through `~/.config/assistant/media/media.sock`. The production sidecar on the VPS is a separate path (see [Media sidecar live checks](../operations/media-sidecar-live-checks.md)).
+- **Images (`image_generate`):** on `gemini-nano-banana-2.1`, for the departments that hold the `marketing`, `innovation` or `assistance` duty (Praw holds `assistance`). Every image needs an approval card that shows the whole prompt and the cost. A fixed "no real person" instruction is appended in code, but the provider has no person control, so generic people may still appear (accepted by the owner, OD-5i). Caps: 20 images a day for the company and 5 per person (`media.imagesPerDay`, `media.imagesPerPersonPerDay`). A call reserves at most $0.064512 (`maxOutputTokens` 2048 at the default prices) and is settled from usage. Stored `tools.byDept` lists must include the media grants (migration `024_media`). **Video is off** (OD-5): `video_generate` is not registered. Before release the images must pass the live checks L1 to L6 in `docs/security/2026-11-07-gate2-rfmd-p5.md` (parent repo).
+
+Start the media container with `npm run local:media` (see [First run](../getting-started/first-run.md)).
+
+## Voice and music
+
+Everything here is M5. Reference detail: [Media binaries (P22)](../operations/media-binaries.md) and the Music and Voice chat subsections below. This section is the short version plus the live checks only the owner can do.
+
+- **Music.** `/play`, `/skip`, `/queue`, `/stop`, `/volume` and the `music_*` tools, over the pinned yt-dlp and ffmpeg. The requester must be in a voice channel. The queue survives a restart (paused).
+- **Voice chat.** `/voice join` (Praw joins your own voice channel), `/voice leave`. Speech goes to Google (Gemini) for transcription, reply text goes to Microsoft (Edge TTS) for speech. Only the invoker and people who press the opt-in button are heard; the presser must be in Praw's voice channel at that moment. If Edge TTS fails or the service changes, Praw posts the reply as text in the channel instead; nothing else breaks.
+- **Idle and length.** `voice.idleMin` (10) counts silence only while no music is playing: while music is playing the idle timer is paused (it restarts when the music stops). `voice.maxSessionMin` (60) always applies. A spoken reply never queues more than 2 clips over the music, and a clip that does not finish in time is dropped.
+- **Rollout note (stored allowlist).** The default `media.ytHostAllowlist` now includes `m.youtube.com`. A deployment that already **stored** a `media.ytHostAllowlist` value keeps its stored list: add `m.youtube.com` to it with `/media allowlist action:add host:m.youtube.com` (Bot Admin, in `#⚙️-setting`; the list is validated, versioned, audited and live at once; `action:remove` takes a host off), or mobile links are refused. `/media allowlist` is the only supported way to edit that list.
+
+**Live check (owner, in the real server, with Praw alone in a voice channel).**
+
+1. **AC12 (music).** Join a voice channel, `/play lofi`, then `/play` a second song, `/skip`, `/queue`, `/volume 60`, `/stop`. Then, with the music playing, ask Praw by voice something that needs her to answer: the music ducks to 20% and comes back, and the track is not skipped.
+2. **AC13 (voice).** `/voice join`, speak a question that needs `web_search`, hear the spoken answer, then `/halt` (or `/voice leave`): Praw leaves within 2 s and nothing was written to disk.
+3. **DAVE readiness when Praw is alone in a channel.** With only you and Praw in the voice channel (no other member), `/voice join` and speak. The DAVE handshake must complete before any audio is sent (the log shows DAVE negotiated; no "not E2EE" refusal, no silence). Repeat after everyone else has left and one person returns. If DAVE is not live, Praw leaves; that is the intended behaviour, so report it with the log line.
+4. **YouTube and cookies.** `/play` a normal video. If YouTube answers "sign in to confirm you are not a bot" from the server IP, set `YTDLP_COOKIES_FILE` (see "Music" below: throwaway account, mode 0600, read-only mount, never in the image) and retry. Record in the release notes whether cookies were needed.
+
+### Music (M5, Task 36)
+
+`/play <song or YouTube link>`, `/skip`, `/queue`, `/stop`, `/volume <0-150>` and the tools `music_play`, `music_queue`, `music_skip`, `music_stop`, `music_volume` run on Praw's music player. The requester must be in a voice channel; Praw joins it when she is in none (Connect and Speak on that channel). The commands act directly (no model call) after the usual Praw guard: denied channels refused, one rate-limit slot per interaction. The write tools follow the central approval rule: a person talking straight to Praw plays at once, voice and delegated runs ask first.
+
+- **Input (P7).** A link must be https (http is upgraded) with an exact host from `media.ytHostAllowlist` (default `youtube.com`, `www.youtube.com`, `m.youtube.com`, `music.youtube.com`, `youtu.be`), no user name, password or port. Anything else that is not a link is a YouTube search (`ytsearch1:`). The value is always the last argument, after `--`, and nothing is ever run through a shell.
+- **yt-dlp flags.** Fixed: `--ignore-config --no-plugin-dirs --no-exec --no-playlist --no-cache-dir --no-write-info-json --no-write-thumbnail --no-write-subs --no-write-comments`, `--max-filesize 52428800`, `--match-filters duration<=1200` (20 minutes; a live stream has no duration and is refused), `--use-extractors youtube,youtube:search` (search needs the `youtube:search` extractor; the generic extractor is never loaded), `--no-js-runtimes --js-runtimes node:<the app's node> --no-remote-components` (YouTube's challenge runs in the bundled yt-dlp-ejs under the image's own node with `--experimental-permission`; no deno, nothing downloaded), `--downloader native --fixup never` (yt-dlp never starts an ffmpeg of its own), `-f bestaudio/best -q -o -`. Never `-U`.
+- **Pipeline.** yt-dlp writes the media to stdout, our ffmpeg reads it with `-protocol_whitelist pipe -i pipe:0` and writes raw PCM to the voice session. Both run with `childEnv()` (private HOME per call, no parent env), shell off, in their own process group with a wall-clock timeout and stdout caps. The group (yt-dlp's node child included) is killed on `/skip`, `/stop`, timeout, leaving voice and `/halt`.
+- **Queue.** At most 50 tracks, stored in `music_state` (migration 010) with the volume and a paused flag. A restart restores the queue paused: Praw does not rejoin by herself, and the next `/play` resumes it. Leaving voice (also `/halt`, a kick or a DAVE drop) clears the queue; a restart does not.
+- **Cookies (optional).** YouTube may ask server IPs to sign in. Set `YTDLP_COOKIES_FILE` to the absolute path of a Netscape cookies file from a **throwaway account that is not the owner's**, mounted read-only, mode `0600`, owned by the app user, never in the image (`.dockerignore` excludes `*cookies*`). yt-dlp only ever gets a per-call copy inside its private HOME on the tmpfs, deleted when it exits.
+
+### Voice chat (M5, Task 37)
+
+`/voice join` makes Praw join **the voice channel you are in** (never another one, never a denied channel, one channel at a time; Connect and Speak on that channel). `/voice leave` works from any channel, for anyone. Both pass the usual Praw guard and take one rate-limit slot.
+
+- **Where the data goes.** The speech of the people Praw listens to goes to **Google** (Gemini, `voice.stt` = `gemini`) for transcription, through the same metered path as OCR: it is reserved and settled against the budgets, audited as `llm.call` and shown in `/usage`. Praw's reply text goes to **Microsoft** for speech: Edge TTS (the unofficial Read Aloud service of Microsoft Edge, through the pinned `msedge-tts` `2.1.1` package, one WebSocket per reply to the fixed endpoint `speech.platform.bing.com`; nothing user-controlled chooses the host). The service is undocumented and can change or stop without notice; when TTS fails, the reply is posted as text in the channel instead. On join, Praw posts a notice in the text channel saying this.
+- **Who is heard (opt in).** Only the member who ran `/voice join` and members who press the opt-in button on the join notice. The button is tied to that session. Everyone else's audio and every bot's audio is discarded without being decoded.
+- **Privacy.** DAVE (Discord's end-to-end voice encryption) is required: if it cannot be negotiated, or is lost, Praw leaves. Audio, transcripts and the spoken replies live in memory only and nothing is written to disk (the TTS mp3 is decoded by the pinned ffmpeg over pipes; ffmpeg gets an empty private HOME like every child). Transcripts are wrapped as untrusted input and never stored in audit rows; a voice request is never a "direct" request, so every write tool asks for approval first.
+- **Limits.** `limits.voiceMinPerUserDay` (30) minutes of speech per person per day are transcribed; past that Praw says so once and stops listening to that person until the next day (UTC). One utterance ends after `voice.silenceMs` (900) ms of silence; speech shorter than 300 ms is ignored and one utterance is at most 60 s. Praw leaves when the invoker leaves the channel, after `voice.idleMin` (10) minutes without speech, after `voice.maxSessionMin` (60) minutes, on `/voice leave` and on `/halt` (within 2 s). Replies are spoken with `voice.ttsVoice` (`th-TH-NiwatNeural`; Edge voice names only).
+- **With music.** A spoken reply is mixed over the music, which is ducked to 20% while Praw speaks and comes back afterwards; the track keeps playing and is never skipped.
+
+Related: [Media binaries (P22)](../operations/media-binaries.md), [Documents and receipts](documents-and-receipts.md), [Security notes](../reference/security-notes.md).
+
+Back to the [documentation index](../_index.md).

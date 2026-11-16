@@ -28,7 +28,7 @@ export type GroupsResult = { enabled: string[]; disabled: { id: string; why: str
 
 /**
  * Every feature task adds its own factory here (and its "tool schemas convert for Gemini" assertion). The array stays explicit: its order fixes registration order.
- * R4: a new plugin is a folder `tools/plugins/<x>/` with index.ts AND manifest.ts, one line here and one line in tools/manifest/catalog.ts (see README, "Adding a tool/plugin").
+ * R4: a new plugin is a folder `tools/plugins/<x>/` with index.ts AND manifest.ts, one line here and one line in tools/manifest/catalog.ts (see docs/features/tools-and-plugins.md#adding-a-toolplugin-r4-plugin-manifest).
  * `registerGroups` refuses (boot fails) a tool of a group in this array that no manifest declares with the same group and kind; a completeness test names the missing line.
  */
 export const pluginGroups: GroupFactory[] = [webGroup, remindersGroup, scheduleGroup, watchGroup, lessonsGroup, workspaceGroup, pinGroup, forumGroup, clickupGroup, githubGroup, ocrGroup, musicGroup, docsGroup, mediaGroup, wsGroup];

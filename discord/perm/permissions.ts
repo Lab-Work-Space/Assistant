@@ -16,7 +16,7 @@ export const ADMIN_EXECUTOR_ID = 'admin';
 export const allowedGuildBits = (who: string): bigint => (who === ADMIN_EXECUTOR_ID ? ADMIN_GUILD_ALLOWED_BITS : GUILD_ALLOWED_BITS);
 
 /**
- * Per-channel permissions each head bot needs (Gate 1 D19; README, Task 15). Granted as channel/category
+ * Per-channel permissions each head bot needs (Gate 1 D19; docs/deployment/owner-setup-checklist.md#1-discord-applications-9-one-per-department). Granted as channel/category
  * overwrites, never guild-wide. Manage Webhooks only where the dept's personas speak. Attach Files is not here: Praw gets it per channel (PRAW_EXTRA_PERMISSIONS).
  */
 export const REQUIRED_CHANNEL_PERMISSIONS: readonly { name: keyof typeof PermissionFlagsBits; why: string }[] = [

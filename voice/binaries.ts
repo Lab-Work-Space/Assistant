@@ -6,7 +6,7 @@ import { nodeExec } from './exec.js';
 
 /**
  * P22: the media binaries baked into the image, pinned by version and sha256 per architecture. deploy/Dockerfile carries the same
- * yt-dlp values as build ARGs (a unit test keeps them equal); the README "Media binaries" section is the bump procedure. Never updated
+ * yt-dlp values as build ARGs (a unit test keeps them equal); docs/operations/media-binaries.md#media-binaries-p22 is the bump procedure. Never updated
  * at runtime: yt-dlp is never run with -U.
  *
  * yt-dlp is the official onedir build (`yt-dlp_musllinux[.zip]`, verified at build time against the release's SHA2-256SUMS, whose

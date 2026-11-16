@@ -228,7 +228,7 @@ live() {
   out=$(js media https.cjs https://www.youtube.com/); echo "media outbound: $out"
   expect "S13 outbound HTTPS from media works" has '^status=[0-9]+$' "$out"
   out=$(js media tcp.cjs host.docker.internal "$ACC_PORT"); echo "INFO media -> host published port (Docker Desktop has no host firewall): $out"
-  res SKIP "S13 host ports (172.30.0.1:443/:4231, 10.213.0.1:22/:4231/:2222) are VPS-only: README runbook"
+  res SKIP "S13 host ports (172.30.0.1:443/:4231, 10.213.0.1:22/:4231/:2222) are VPS-only: docs/operations/media-sidecar-live-checks.md"
 }
 
 unpatched() {

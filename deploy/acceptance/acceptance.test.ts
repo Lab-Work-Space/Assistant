@@ -1,7 +1,7 @@
 /**
  * deploy/acceptance (plan Task 8): the local two-container acceptance kit is not run by vitest (it needs Docker); these tests keep
  * it well-formed and keep its safety rules: bash 3.2 syntax, the layers it puts on top of the real lw render, no prune/rmi, a
- * project-scoped teardown, and the README runbook section it points to.
+ * project-scoped teardown, and the docs/operations/media-sidecar-live-checks.md runbook it points to.
  */
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -150,8 +150,8 @@ describe('D5 fixture: a real `docker compose config --format json --no-env-resol
   });
 });
 
-describe('README runbook', () => {
-  const readme = readFileSync(join(ROOT, 'README.md'), 'utf8');
+describe('Media sidecar runbook (docs)', () => {
+  const readme = readFileSync(join(ROOT, 'docs', 'operations', 'media-sidecar-live-checks.md'), 'utf8');
   const i = readme.indexOf('\n## Media sidecar — deploy and live checks');
   const rest = i < 0 ? '' : readme.slice(i + 1);
   const next = rest.slice(3).search(/\n## /);

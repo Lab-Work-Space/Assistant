@@ -19,7 +19,7 @@ RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
 # P22 media binaries: pinned by version AND sha256, per architecture, never auto-updated (yt-dlp is never run with -U).
 # The yt-dlp values are PINNED_BINARIES in voice/binaries.ts (a unit test keeps them equal; the boot check re-hashes them).
-# Bump procedure: README "Media binaries (P22)".
+# Bump procedure: docs/operations/media-binaries.md#media-binaries-p22.
 # yt-dlp: the official onedir build. The one-file build self-extracts ~96 MB of .so files into TMPDIR, which the container's
 # 16 MB noexec /tmp refuses. The release's SHA2-256SUMS must carry a valid signature from the yt-dlp signing key (pinned by
 # fingerprint; the key is committed as voice/yt-dlp-signing-key.asc), the zip must match both that file and the pin below,
