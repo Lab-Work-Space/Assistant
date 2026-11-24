@@ -1,0 +1,5 @@
+"""Fixed user-facing strings used by the engine (Thai). TASK-008 may re-export these from core/discord/strings.py."""
+BUDGET_STOP = "งบประมาณของวันนี้หมดแล้วค่ะ ลองใหม่พรุ่งนี้ หรือให้แอดมินปรับงบด้วยคำสั่ง /budget นะคะ"
+PROVIDER_FAILED = "ขออภัยค่ะ ระบบ AI ขัดข้องชั่วคราว ลองใหม่อีกครั้งนะคะ"
+CUT_OFF = "\n\n(คำตอบถูกตัดกลางคันเพราะระบบขัดข้อง)"
+INTERNAL_ERROR = "ขออภัยค่ะ เกิดข้อผิดพลาดภายในระบบ"

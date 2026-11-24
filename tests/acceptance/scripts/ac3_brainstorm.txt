@@ -1,0 +1,5 @@
+# AC-3: brainstorm, turn limit 4, speakers alternate (loop guard: no speaker twice in a row), summary on close
+/agent praw
+/brainstorm launch-plan praw fahsai 4
+/wait-idle 60
+/expect (?s)(?=.*praw\] reply from.*fahsai\] reply from.*praw\] reply from.*fahsai\] reply from)(?=.*Brainstorm closed)(?=.*Reason: turn_limit)(?=.*Turns: 4)

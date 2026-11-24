@@ -1,0 +1,21 @@
+# AC-4 (partial): approval refused for user, rejected+approved by admin, agent resumes
+/agent praw
+NEEDAPPROVAL please
+/expect \[approval [0-9a-f-]{36}\] Use tool X
+/as user
+/approve last
+/expect not_approver
+/reject last
+/expect not_approver
+/as admin
+/approve last
+/expect approved decided_by=cli:admin
+/wait-idle 30
+/expect \[praw\] Thanks, approval received
+/approve last
+/expect (already|not_pending|not_found|unknown|invalid)
+# second request: reject path
+NEEDAPPROVAL again
+/expect \[approval [0-9a-f-]{36}\] Use tool X
+/reject last
+/expect rejected decided_by=cli:admin

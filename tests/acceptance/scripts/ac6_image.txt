@@ -1,0 +1,5 @@
+# AC-6: image bytes delivered through the sink as a file
+/agent praw
+IMAGEQ draw a cat
+/wait-idle 30
+/expect \[file\] \S+image\.png

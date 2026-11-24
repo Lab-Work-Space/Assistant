@@ -1,0 +1,23 @@
+[project]
+name = "employee"
+version = "0.1.0"
+requires-python = ">=3.12"
+# py-cord must document VoiceClient.is_dave_connection() (checked by deploy/install.sh).
+# TASK-016 may append exactly one STT client dependency line.
+dependencies = [
+  "py-cord[voice]==2.8.1",
+  "anthropic",
+  "google-genai",
+  "pyyaml",
+  "jsonschema",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-asyncio"]  # dev only; /opt/employee/venv uses the runtime lock (G2-08)
+audit = ["pip-audit"]  # weekly scan, dev account (spec 11.18.2)
+
+[tool.setuptools]
+py-modules = []  # deps-only install; code is copied, not packaged
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

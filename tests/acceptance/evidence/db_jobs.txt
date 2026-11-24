@@ -1,0 +1,1 @@
+selftest_crash|failed|signal:6|-6

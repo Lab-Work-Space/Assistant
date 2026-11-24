@@ -1,0 +1,5 @@
+# AC-5: index first, then open exactly one matching entry
+/agent praw
+KNOWQ what is the alpha plan
+/wait-idle 30
+/expect Found: ALPHA-BODY-MARKER

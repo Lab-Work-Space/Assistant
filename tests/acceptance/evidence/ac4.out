@@ -1,0 +1,51 @@
+> # AC-4 (partial): approval refused for user, rejected+approved by admin, agent resumes
+> /agent praw
+agent: praw
+> NEEDAPPROVAL please
+[approval a794a562-54e3-49ad-81b3-2d1b49726683] Use tool X (by praw)
+  code: APR-HQ-0001 level: hq routing: no_dept
+  Use tool X to finish the task.
+  -> /approve or /reject a794a562-54e3-49ad-81b3-2d1b49726683
+[praw] reply from gemini-3.8-flash
+> /expect \[approval [0-9a-f-]{36}\] Use tool X
+expect ok: \[approval [0-9a-f-]{36}\] Use tool X
+> /as user
+as: user
+> /approve last
+not_approver
+> /expect not_approver
+expect ok: not_approver
+> /reject last
+not_approver
+> /expect not_approver
+expect ok: not_approver
+> /as admin
+as: admin
+> /approve last
+[approval a794a562-54e3-49ad-81b3-2d1b49726683] approved by cli:admin
+approved decided_by=cli:admin
+> /expect approved decided_by=cli:admin
+expect ok: approved decided_by=cli:admin
+> /wait-idle 30
+[praw] Thanks, approval received
+> /expect \[praw\] Thanks, approval received
+expect ok: \[praw\] Thanks, approval received
+> /approve last
+not_found
+> /expect (already|not_pending|not_found|unknown|invalid)
+expect ok: (already|not_pending|not_found|unknown|invalid)
+> # second request: reject path
+> NEEDAPPROVAL again
+[approval a44642b4-ab75-4267-a947-40d692d6a631] Use tool X (by praw)
+  code: APR-HQ-0002 level: hq routing: no_dept
+  Use tool X to finish the task.
+  -> /approve or /reject a44642b4-ab75-4267-a947-40d692d6a631
+[praw] reply from gemini-3.8-flash
+> /expect \[approval [0-9a-f-]{36}\] Use tool X
+expect ok: \[approval [0-9a-f-]{36}\] Use tool X
+> /reject last
+[approval a44642b4-ab75-4267-a947-40d692d6a631] rejected by cli:admin
+rejected decided_by=cli:admin
+> /expect rejected decided_by=cli:admin
+expect ok: rejected decided_by=cli:admin
+[praw] Understood, approval rejected

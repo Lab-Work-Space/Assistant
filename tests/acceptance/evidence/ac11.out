@@ -1,0 +1,30 @@
+> # Exploratory regression: error paths must not crash the CLI
+> /agent nobody
+unknown agent: nobody
+> /bogus
+unknown command: /bogus
+> /approve 00000000-0000-0000-0000-000000000000
+{"ts": "2026-11-23T06:53:42.374798+00:00", "level": "WARNING", "system": "approvals", "event": "approval.denied", "fields": {"id": "00000000-0000-0000-0000-000000000000", "by": "cli:user", "reason": "role"}}
+not_approver
+> /budget set praw 5
+not_approver
+> /as admin
+as: admin
+> /budget set praw notanumber
+usage: /budget set <agent> <usd>
+> /thread 99999
+thread: 99999
+> /main
+> /jobs
+no jobs
+> /approvals
+no pending approvals
+> /expect (?s)(?=.*unknown agent: nobody)(?=.*unknown command: /bogus)(?=.*not_approver)(?=.*usage: /budget set)(?=.*no pending approvals)
+expect ok: (?s)(?=.*unknown agent: nobody)(?=.*unknown command: /bogus)(?=.*not_approver)(?=.*usage: /budget set)(?=.*no pending approvals)
+{"ts": "2026-11-23T06:53:42.381871+00:00", "level": "ERROR", "system": "core.jobs.runner", "event": "lib.log", "fields": {"msg": "job.claim_error exc_type=InterfaceError"}}
+{"ts": "2026-11-23T06:53:42.381970+00:00", "level": "ERROR", "system": "core.jobs.runner", "event": "lib.log", "fields": {"msg": "job.sweep_error exc_type=InterfaceError"}}
+{"ts": "2026-11-23T06:53:42.382020+00:00", "level": "ERROR", "system": "core.jobs.runner", "event": "lib.log", "fields": {"msg": "job.sweep_error exc_type=InterfaceError"}}
+{"ts": "2026-11-23T06:53:42.382059+00:00", "level": "ERROR", "system": "core.jobs.runner", "event": "lib.log", "fields": {"msg": "job.sweep_error exc_type=InterfaceError"}}
+{"ts": "2026-11-23T06:53:42.382095+00:00", "level": "ERROR", "system": "core.jobs.runner", "event": "lib.log", "fields": {"msg": "job.sweep_error exc_type=InterfaceError"}}
+{"ts": "2026-11-23T06:53:42.382175+00:00", "level": "ERROR", "system": "core.jobs.runner", "event": "lib.log", "fields": {"msg": "job.sweep_error exc_type=InterfaceError"}}
+{"ts": "2026-11-23T06:53:42.382351+00:00", "level": "INFO", "system": "knowledge", "event": "knowledge.purge", "fields": {"area": "meetings", "removed": 0}}

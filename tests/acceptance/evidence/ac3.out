@@ -1,0 +1,36 @@
+> # AC-3: brainstorm, turn limit 4, speakers alternate (loop guard: no speaker twice in a row), summary on close
+> /agent praw
+agent: praw
+> /brainstorm launch-plan praw fahsai 4
+[praw] [embed] Brainstorm
+[praw] [embed] launch-plan
+[praw] [embed] Participants: praw, fahsai
+[praw] [embed] Turns: 4
+--- thread 2001: Brainstorm launch-plan ---
+{"ts": "2026-11-23T06:53:35.917080+00:00", "level": "INFO", "system": "tasks", "event": "brainstorm.started", "fields": {"id": "7fb327b7-061e-4342-b29e-db0cb16f53ec", "owner": "praw", "kind": "human", "turn_limit": 4}}
+brainstorm started thread=2001
+> /wait-idle 60
+[thread 2001 praw] reply from gemini-3.8-flash
+{"ts": "2026-11-23T06:53:35.923499+00:00", "level": "INFO", "system": "agents", "event": "tool.respond", "fields": {"agent": "praw", "run": "62b5da16b1ff485585060c35563f517c", "type": "chat", "implicit": true, "msgs": 1}}
+{"ts": "2026-11-23T06:53:35.923578+00:00", "level": "INFO", "system": "agents", "event": "agent.run_done", "fields": {"agent": "praw", "run": "62b5da16b1ff485585060c35563f517c", "ok": true, "error": null, "input_tokens": 5, "output_tokens": 5}}
+{"ts": "2026-11-23T06:53:35.925069+00:00", "level": "INFO", "system": "knowledge", "event": "knowledge.purge", "fields": {"area": "meetings", "removed": 0}}
+[thread 2001 fahsai] reply from claude-haiku-5-5
+{"ts": "2026-11-23T06:53:35.927528+00:00", "level": "WARNING", "system": "budget", "event": "budget.unknown_model", "fields": {"model": "claude-haiku-5-5"}}
+{"ts": "2026-11-23T06:53:35.928387+00:00", "level": "INFO", "system": "agents", "event": "tool.respond", "fields": {"agent": "fahsai", "run": "623c59d593494451b19983604fb58639", "type": "chat", "implicit": true, "msgs": 1}}
+{"ts": "2026-11-23T06:53:35.928435+00:00", "level": "INFO", "system": "agents", "event": "agent.run_done", "fields": {"agent": "fahsai", "run": "623c59d593494451b19983604fb58639", "ok": true, "error": null, "input_tokens": 5, "output_tokens": 5}}
+[thread 2001 praw] reply from gemini-3.8-flash
+{"ts": "2026-11-23T06:53:35.932199+00:00", "level": "INFO", "system": "agents", "event": "tool.respond", "fields": {"agent": "praw", "run": "fa1b78ec1e9f4e3986c9965eafb86d4b", "type": "chat", "implicit": true, "msgs": 1}}
+{"ts": "2026-11-23T06:53:35.932239+00:00", "level": "INFO", "system": "agents", "event": "agent.run_done", "fields": {"agent": "praw", "run": "fa1b78ec1e9f4e3986c9965eafb86d4b", "ok": true, "error": null, "input_tokens": 5, "output_tokens": 5}}
+[thread 2001 fahsai] reply from claude-haiku-5-5
+{"ts": "2026-11-23T06:53:35.936020+00:00", "level": "INFO", "system": "agents", "event": "tool.respond", "fields": {"agent": "fahsai", "run": "79cf5c955e3c4f4c98cca90bb1000d9e", "type": "chat", "implicit": true, "msgs": 1}}
+{"ts": "2026-11-23T06:53:35.936059+00:00", "level": "INFO", "system": "agents", "event": "agent.run_done", "fields": {"agent": "fahsai", "run": "79cf5c955e3c4f4c98cca90bb1000d9e", "ok": true, "error": null, "input_tokens": 5, "output_tokens": 5}}
+[thread 2001 praw] reply from gemini-3.8-flash
+{"ts": "2026-11-23T06:53:35.941100+00:00", "level": "INFO", "system": "agents", "event": "tool.respond", "fields": {"agent": "praw", "run": "04d29619aa9943beac4507c40ae3f145", "type": "chat", "implicit": true, "msgs": 1}}
+{"ts": "2026-11-23T06:53:35.941146+00:00", "level": "INFO", "system": "agents", "event": "agent.run_done", "fields": {"agent": "praw", "run": "04d29619aa9943beac4507c40ae3f145", "ok": true, "error": null, "input_tokens": 5, "output_tokens": 5}}
+[thread 2001 praw] [embed] Brainstorm closed
+[thread 2001 praw] [embed] launch-plan
+[thread 2001 praw] [embed] Reason: turn_limit
+[thread 2001 praw] [embed] Turns: 4
+{"ts": "2026-11-23T06:53:35.942391+00:00", "level": "INFO", "system": "tasks", "event": "brainstorm.closed", "fields": {"id": "7fb327b7-061e-4342-b29e-db0cb16f53ec", "reason": "turn_limit", "turns": 4}}
+> /expect (?s)(?=.*praw\] reply from.*fahsai\] reply from.*praw\] reply from.*fahsai\] reply from)(?=.*Brainstorm closed)(?=.*Reason: turn_limit)(?=.*Turns: 4)
+expect ok: (?s)(?=.*praw\] reply from.*fahsai\] reply from.*praw\] reply from.*fahsai\] reply from)(?=.*Brainstorm closed)(?=.*Reason: turn_limit)(?=.*Turns: 4)

@@ -1,0 +1,13 @@
+> # AC-6: image bytes delivered through the sink as a file
+> /agent praw
+agent: praw
+> IMAGEQ draw a cat
+{"ts": "2026-11-23T06:53:36.644808+00:00", "level": "WARNING", "system": "budget", "event": "budget.unknown_model", "fields": {"model": "google/i"}}
+[praw] [file] /var/folders/l1/qsnj_bzx7jgcmsts5343h8pr0000gn/T/emp-cli-7tzzv5wn/image.png
+{"ts": "2026-11-23T06:53:36.646317+00:00", "level": "INFO", "system": "tools", "event": "tool.call", "fields": {"agent": "praw", "run": "91bd000b873543c9b0971a7d2482d191", "name": "image_generate", "ok": true, "error": null, "ms": 3}}
+[praw] Image sent: <tool_result name="image_generate" ok="t
+{"ts": "2026-11-23T06:53:36.648743+00:00", "level": "INFO", "system": "agents", "event": "tool.respond", "fields": {"agent": "praw", "run": "91bd000b873543c9b0971a7d2482d191", "type": "chat", "implicit": true, "msgs": 1}}
+{"ts": "2026-11-23T06:53:36.648799+00:00", "level": "INFO", "system": "agents", "event": "agent.run_done", "fields": {"agent": "praw", "run": "91bd000b873543c9b0971a7d2482d191", "ok": true, "error": null, "input_tokens": 10, "output_tokens": 10}}
+> /wait-idle 30
+> /expect \[file\] \S+image\.png
+expect ok: \[file\] \S+image\.png

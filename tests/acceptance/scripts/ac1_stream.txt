@@ -1,0 +1,4 @@
+# AC-1 (partial): streamed chat reply from praw
+/agent praw
+hello there
+/expect \[praw\] reply from

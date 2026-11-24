@@ -1,0 +1,25 @@
+> # AC-2 (partial): delegation via the agent's task_create tool, task record + embed text, own persona id (fahsai) in the task thread
+> /agent praw
+agent: praw
+> /delegate fahsai write the report
+[praw] [embed] HR-0001 write the report
+[praw] [embed] Write the quarterly report for the team.
+[praw] [embed] Code: HR-0001
+[praw] [embed] Department: HR
+[praw] [embed] Requester: <@2>
+[praw] [embed] Assignee: fahsai
+[praw] [embed] Priority: normal
+[praw] [embed] Due: 2026-11-25
+[praw] [embed] Value (THB): 500 THB
+[praw] [embed] Status: open
+--- thread 2001: HR-0001 write the report ---
+[praw] reply from gemini-3.8-flash
+> /wait-idle 30
+[thread 2001 fahsai] reply from claude-haiku-5-5
+[thread 2001 fahsai] reply from claude-haiku-5-5
+[thread 2001 fahsai] [embed] Brainstorm closed
+[thread 2001 fahsai] [embed] write the report
+[thread 2001 fahsai] [embed] Reason: turn_limit
+[thread 2001 fahsai] [embed] Turns: 1
+> /expect (?s)(?=.*HR-0001 write the report)(?=.*Assignee: fahsai)(?=.*\[thread \d+ fahsai\] reply from)(?=.*Reason: turn_limit)
+expect ok: (?s)(?=.*HR-0001 write the report)(?=.*Assignee: fahsai)(?=.*\[thread \d+ fahsai\] reply from)(?=.*Reason: turn_limit)

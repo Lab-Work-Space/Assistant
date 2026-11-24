@@ -1,0 +1,5 @@
+# AC-2 (partial): delegation via the agent's task_create tool, task record + embed text, own persona id (fahsai) in the task thread
+/agent praw
+/delegate fahsai write the report
+/wait-idle 30
+/expect (?s)(?=.*HR-0001 write the report)(?=.*Assignee: fahsai)(?=.*\[thread \d+ fahsai\] reply from)(?=.*Reason: turn_limit)

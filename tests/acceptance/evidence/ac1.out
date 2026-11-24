@@ -1,0 +1,9 @@
+> # AC-1 (partial): streamed chat reply from praw
+> /agent praw
+agent: praw
+> hello there
+[praw] reply from gemini-3.8-flash
+{"ts": "2026-11-23T06:53:35.442740+00:00", "level": "INFO", "system": "agents", "event": "tool.respond", "fields": {"agent": "praw", "run": "1954530353524ca087aca8260a853c2b", "type": "chat", "implicit": true, "msgs": 1}}
+{"ts": "2026-11-23T06:53:35.442824+00:00", "level": "INFO", "system": "agents", "event": "agent.run_done", "fields": {"agent": "praw", "run": "1954530353524ca087aca8260a853c2b", "ok": true, "error": null, "input_tokens": 5, "output_tokens": 5}}
+> /expect \[praw\] reply from
+expect ok: \[praw\] reply from

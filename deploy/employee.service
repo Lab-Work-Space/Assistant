@@ -1,0 +1,64 @@
+[Unit]
+Description=Employee AI team bot (spec §11)
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=exec
+User=employee
+Group=employee
+WorkingDirectory=/opt/employee/app
+EnvironmentFile=/etc/employee/employee.env
+Environment=PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1 PATH=/opt/employee/venv/bin:/usr/bin:/bin
+Environment=DATABASE_PATH=/var/lib/employee/employee.db
+Environment=KNOWLEDGE_DIR=/var/lib/employee/knowledge LOG_DIR=/var/log/employee VOICE_TMP_DIR=/run/employee/voice
+# S11-06: runs as root (+) on every start; refuses an env file that sets the CLI flag or a path variable.
+ExecStartPre=+/bin/sh -c '! grep -Eq "^[[:space:]]*(export[[:space:]]+)?(EMP_CLI_DEV|DATABASE_PATH|KNOWLEDGE_DIR|LOG_DIR|VOICE_TMP_DIR)[[:space:]]*=" /etc/employee/employee.env'
+ExecStartPre=/opt/employee/venv/bin/python -m core.migration
+ExecStart=/opt/employee/venv/bin/python -m core
+Restart=on-failure
+RestartSec=5s
+RestartPreventExitStatus=2
+UMask=0077
+StateDirectory=employee
+StateDirectoryMode=0700
+LogsDirectory=employee
+LogsDirectoryMode=0700
+RuntimeDirectory=employee
+RuntimeDirectoryMode=0700
+ReadWritePaths=/var/lib/employee /var/log/employee /run/employee
+MemoryMax=1G
+CPUQuota=60%
+TasksMax=100
+Nice=5
+LimitCORE=0
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+ProcSubset=pid
+RestrictSUIDSGID=yes
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+RemoveIPC=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged
+SystemCallErrorNumber=EPERM
+
+[Install]
+WantedBy=multi-user.target

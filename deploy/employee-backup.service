@@ -1,0 +1,44 @@
+[Unit]
+Description=Employee SQLite backup (spec §11.8)
+
+[Service]
+Type=oneshot
+User=employee
+Group=employee
+WorkingDirectory=/opt/employee/app
+Environment=PYTHONDONTWRITEBYTECODE=1 DATABASE_PATH=/var/lib/employee/employee.db KNOWLEDGE_DIR=/var/lib/employee/knowledge
+ExecStart=/opt/employee/venv/bin/python -m core.db.backup
+UMask=0077
+StateDirectory=employee
+StateDirectoryMode=0700
+ReadWritePaths=/var/lib/employee
+LimitCORE=0
+MemoryMax=256M
+Nice=10
+IOSchedulingClass=idle
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+AmbientCapabilities=
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+PrivateNetwork=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+ProtectProc=invisible
+ProcSubset=pid
+LockPersonality=yes
+RestrictSUIDSGID=yes
+RestrictRealtime=yes
+RemoveIPC=yes
+RestrictAddressFamilies=AF_UNIX
+RestrictNamespaces=yes
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged
+SystemCallErrorNumber=EPERM

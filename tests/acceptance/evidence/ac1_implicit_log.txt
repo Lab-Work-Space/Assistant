@@ -1,0 +1,3 @@
+{"ts": "2026-11-23T06:53:35.442740+00:00", "level": "INFO", "system": "agents", "event": "tool.respond", "fields": {"agent": "praw", "run": "1954530353524ca087aca8260a853c2b", "type": "chat", "implicit": true, "msgs": 1}}
+{"ts": "2026-11-23T06:53:35.678221+00:00", "level": "INFO", "system": "agents", "event": "tool.respond", "fields": {"agent": "praw", "run": "feac2def88df4bb2b908941076db2234", "type": "chat", "implicit": true, "msgs": 1}}
+{"ts": "2026-11-23T06:53:35.680617+00:00", "level": "INFO", "system": "agents", "event": "tool.respond", "fields": {"agent": "fahsai", "run": "081ee00eca1c42c68aa0e8e06f9a5b46", "type": "chat", "implicit": true, "msgs": 1}}

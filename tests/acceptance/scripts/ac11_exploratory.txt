@@ -1,0 +1,12 @@
+# Exploratory regression: error paths must not crash the CLI
+/agent nobody
+/bogus
+/approve 00000000-0000-0000-0000-000000000000
+/budget set praw 5
+/as admin
+/budget set praw notanumber
+/thread 99999
+/main
+/jobs
+/approvals
+/expect (?s)(?=.*unknown agent: nobody)(?=.*unknown command: /bogus)(?=.*not_approver)(?=.*usage: /budget set)(?=.*no pending approvals)

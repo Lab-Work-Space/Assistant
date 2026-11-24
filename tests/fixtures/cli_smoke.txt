@@ -1,0 +1,20 @@
+# streamed reply
+/agent praw
+hello there
+/expect \[praw\] reply from
+# delegation with turn summary (BRAINSTORM_TURN_LIMIT=1)
+/delegate fahsai write the report
+/wait-idle 30
+/expect (?s)HR-0001.*thread \d+ fahsai\] reply from.*Reason: turn_limit
+# approval request, refused for user, approved by admin, wake reply printed
+NEEDAPPROVAL please
+/expect \[approval [0-9a-f-]{36}\] Use tool X
+/as user
+/approve last
+/expect not_approver
+/as admin
+/approve last
+/expect approved decided_by=cli:admin
+/wait-idle 30
+/expect \[praw\] Thanks, approval received
+/quit

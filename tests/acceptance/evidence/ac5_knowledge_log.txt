@@ -1,0 +1,2 @@
+{"ts": "2026-11-23T06:53:36.409604+00:00", "level": "INFO", "system": "knowledge", "event": "knowledge.open", "fields": {"agent": "praw", "run": "b016b5603a81413b805f559834714272", "area": "notes", "file": "_index.md"}}
+{"ts": "2026-11-23T06:53:36.413074+00:00", "level": "INFO", "system": "knowledge", "event": "knowledge.open", "fields": {"agent": "praw", "run": "b016b5603a81413b805f559834714272", "area": "notes", "file": "alpha-plan.md"}}

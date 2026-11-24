@@ -1,0 +1,9 @@
+> # AC-10: planted secrets typed by the user are masked on echo (split across stream chunks)
+> /agent praw
+agent: praw
+> ECHOQ key=AIzaPLANTED40d9a9032c08f0f0b29a and sk-ant-PLANTED-0e42ea19516c717cc9ba end
+[praw] echo: ECHOQ key=*** and *** end
+{"ts": "2026-11-23T06:53:42.152858+00:00", "level": "INFO", "system": "agents", "event": "tool.respond", "fields": {"agent": "praw", "run": "4e8887dc40c5454a827b26ab4398685f", "type": "chat", "implicit": true, "msgs": 1}}
+{"ts": "2026-11-23T06:53:42.152979+00:00", "level": "INFO", "system": "agents", "event": "agent.run_done", "fields": {"agent": "praw", "run": "4e8887dc40c5454a827b26ab4398685f", "ok": true, "error": null, "input_tokens": 5, "output_tokens": 5}}
+> /expect \[praw\] echo: ECHOQ key=\*\*\* and \*\*\* end
+expect ok: \[praw\] echo: ECHOQ key=\*\*\* and \*\*\* end

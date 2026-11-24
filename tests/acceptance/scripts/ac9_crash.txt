@@ -1,0 +1,8 @@
+# AC-9: a crashing worker (SIGABRT job) does not stop the process
+/agent praw
+/sleep 5
+/jobs
+/expect selftest_crash failed
+before-after check
+/expect \[praw\] reply from
+/jobs

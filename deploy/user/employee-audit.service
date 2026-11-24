@@ -1,0 +1,9 @@
+[Unit]
+Description=Employee weekly dependency scan (spec 11.18 S11-04, 11.19.4)
+
+[Service]
+Type=oneshot
+ExecStart=%h/src/employee/.venv/bin/pip-audit --strict --require-hashes --disable-pip -r /opt/employee/app/constraints/requirements.lock
+ExecStart=%h/.local/bin/grype --fail-on high dir:/opt/employee/venv
+ExecStart=/bin/sh -ec 'T=$$(mktemp -d); trap "rm -rf $$T" EXIT; mkdir -p $$T/var/lib/dpkg $$T/etc; cp /var/lib/dpkg/status $$T/var/lib/dpkg/status; cp /etc/os-release $$T/etc/os-release; %h/.local/bin/grype --distro debian:13 --only-fixed --fail-on high dir:$$T'
+ExecStart=/bin/sh -c 'T=$$(mktemp -d); trap "rm -rf $$T" EXIT; mkdir -p $$T/var/lib/dpkg $$T/etc; cp /var/lib/dpkg/status $$T/var/lib/dpkg/status; cp /etc/os-release $$T/etc/os-release; echo "unfixed High/Critical deb CVEs (report only):"; %h/.local/bin/grype --distro debian:13 -q dir:$$T | grep -E "High|Critical" || true'

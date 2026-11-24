@@ -1,0 +1,16 @@
+/.env.local
+/.env.*.local
+/.venv/
+/data/
+/logs/
+/knowledge/meetings/*
+!/knowledge/meetings/.gitkeep
+__pycache__/
+*.pyc
+.DS_Store
+*.db
+*.db-wal
+*.db-shm
+/tests/acceptance/work/
+/tools/spikes/stt/data/
+.pytest_cache/

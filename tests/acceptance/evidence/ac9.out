@@ -1,0 +1,17 @@
+> # AC-9: a crashing worker (SIGABRT job) does not stop the process
+> /agent praw
+agent: praw
+> /sleep 5
+{"ts": "2026-11-23T06:53:36.884656+00:00", "level": "INFO", "system": "knowledge", "event": "knowledge.purge", "fields": {"area": "meetings", "removed": 0}}
+> /jobs
+3becfd26-1660-4f1f-a602-5f28135117b5 selftest_crash failed
+> /expect selftest_crash failed
+expect ok: selftest_crash failed
+> before-after check
+[praw] reply from gemini-3.8-flash
+{"ts": "2026-11-23T06:53:41.879283+00:00", "level": "INFO", "system": "agents", "event": "tool.respond", "fields": {"agent": "praw", "run": "4737d228406d413d8a85d9feba66d47d", "type": "chat", "implicit": true, "msgs": 1}}
+{"ts": "2026-11-23T06:53:41.879357+00:00", "level": "INFO", "system": "agents", "event": "agent.run_done", "fields": {"agent": "praw", "run": "4737d228406d413d8a85d9feba66d47d", "ok": true, "error": null, "input_tokens": 5, "output_tokens": 5}}
+> /expect \[praw\] reply from
+expect ok: \[praw\] reply from
+> /jobs
+3becfd26-1660-4f1f-a602-5f28135117b5 selftest_crash failed
