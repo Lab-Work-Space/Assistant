@@ -87,7 +87,6 @@ class ServerConfig:
     literals: dict[str, str]
     secrets: dict[str, str]      # destination key -> bot env var
     pin: dict[str, Any]
-    node_permission: bool
     root: Path                   # mcp/<svc>
 
 
@@ -127,7 +126,7 @@ def load_server(path: Path | str) -> ServerConfig:
     return ServerConfig(name=name, enabled=bool(d.get("enabled", False)), command=cmd, args=tuple(args),
                         call_timeout_s=timeout, rate_per_min=int(d.get("rate_per_min", 60)), max_concurrency=conc,
                         literals=literals, secrets=secrets, pin=d.get("pin") or {},
-                        node_permission=bool(d.get("node_permission", True)), root=p.parent.resolve())
+                        root=p.parent.resolve())
 
 
 def _platform_key() -> str:
@@ -202,7 +201,7 @@ def prepare(cfg: ServerConfig, data_dir: Path, environ: Mapping[str, str], *, bo
     if cmd_dir not in path.split(":"):
         path += ":" + cmd_dir
     args = list(cfg.args)
-    if os.path.basename(cmd) == "node" and cfg.node_permission:  # G040-09: only mcp/<svc> and <data_dir>/mcp/<svc>
+    if os.path.basename(cmd) == "node":  # G040-09: only mcp/<svc> and <data_dir>/mcp/<svc>
         # G2T040-01: one flag per path; a comma list grants nothing on Node >= 20.7
         args = ["--permission", f"--allow-fs-read={cfg.root}", f"--allow-fs-read={svc}", f"--allow-fs-write={svc}"] + args
     env = {"PATH": path, "HOME": str(svc), "SHELL": "/bin/sh", "LANG": "C.UTF-8",

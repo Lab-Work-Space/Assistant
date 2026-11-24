@@ -3,12 +3,27 @@
 All notable changes. Versions are git tags; full release notes are on the GitHub Releases page of the repository.
 
 ## Contents
+- [0.4.1](#041) — MCP audit fixes
 - [0.4.0](#040) — company tools via MCP (Phase 2A)
 - [0.3.2](#032) — real model prices, tier2 failure test
 - [0.3.1](#031) — growth hardening
 - [0.3.0](#030) — growth system
 - [0.2.0](#020) — AI team on Discord
 - [0.1.0](#010) — core engine
+
+## 0.4.1
+- **Audit for cut-off writes.** A write that runs past its time budget is now audited as `tool_timeout` instead of being lost.
+- **Daily cap.** The MCP daily cap counts only the last 24 hours. Before, it kept old counts after a restart.
+- **Install script.** `scripts/mcp-install.sh` now:
+  - removes the download on every exit;
+  - checks the new binary hash before it replaces the old binary;
+  - has its temp folder git-ignored.
+- **Approved cards after a restart.** Pending approved cards now run in parallel, and a card that is too old to run logs `mcp.replay_stale`.
+- **Service names next to Thai text.** A service name typed directly next to Thai text, for example "เช็คgithubหน่อย", now loads that service's tools.
+- **Lean.**
+  - A tool that fails to register is no longer retried on every offer.
+  - The ClickUp scope cache is capped.
+  - Three unused fields and one unused method are removed.
 
 ## 0.4.0
 - **Company tools (Phase 2A).** Agents can reach ClickUp, GitHub, Google Calendar, Drive, Docs and Sheets (no Gmail), and Hostinger (VPS only), through pinned MCP servers behind one policy gateway. Praw has every service. Department heads have their own department's services and write only inside their scopes. Irreversible actions need an approval card for humans at HQ.

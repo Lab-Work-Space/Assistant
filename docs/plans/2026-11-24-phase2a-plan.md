@@ -67,7 +67,7 @@ Status values per task: Todo | In Progress | Blocked | Done. All start Todo.
 
 | ID | Owner | Task | Depends | Done when |
 | :--- | :--- | :--- | :--- | :--- |
-| OWN-01 | owner | Create central GitHub App (or fine-grained token) with least privilege: repo contents, issues, pull requests; no admin, no webhooks, no secrets, no org settings. Install only on the agreed repos | 040-02 | Token env name present in `.env.local` (name only reported to PM); scope matches setup guide |
+| OWN-01 | owner | Create central GitHub App (or fine-grained token) with repo contents, issues, pull requests, plus Administration read/write (owner answer OQ-1: repo create = write, repo delete = HQ card; repo settings blocked by the gateway); no webhooks, no secrets, no org settings. Install only on the agreed repos | 040-02 | Token env name present in `.env.local` (name only reported to PM); scope matches setup guide |
 | OWN-02 | owner | Create central ClickUp account or app and personal API token; invite only to agreed spaces | 040-02 | Token env name set; account has access only to agreed spaces |
 | OWN-03 | owner | Create Google Cloud project, OAuth client or service account for Calendar, Drive, Docs, Sheets only (no Gmail, no sharing-admin scopes); share only the agreed Drive folders and calendar | 040-02 | Credentials env names set; consent scopes list contains no Gmail |
 | OWN-04 | owner | Create Hostinger API token (smallest scope the service allows; note whether billing is excluded) | 040-02 | Token env name set; owner records whether billing is excludable (feeds Gate 2) |

@@ -546,6 +546,19 @@ Folder index: [specs/_index.md](specs/_index.md)
   - [Owner answers to open questions](specs/2026-11-24-phase2a-integrations-spec.md#owner-answers-to-open-questions)
   - [Specification handoff brief](specs/2026-11-24-phase2a-integrations-spec.md#specification-handoff-brief)
   - [Gate 1 conditions (binding; override the brief where they conflict)](specs/2026-11-24-phase2a-integrations-spec.md#gate-1-conditions-binding-override-the-brief-where-they-conflict)
+- [Phase 2B — agents build their own tools, MCP servers, skills and plugins (design)](specs/2026-11-24-phase2b-self-built-design.md) — PRD Phase 2 says agents create their own tools, MCP servers, plugins and skills. Phase 2A connected the company's existing services. Phase 2
+  - [1. Intent](specs/2026-11-24-phase2b-self-built-design.md#1-intent)
+  - [2. Owner decisions](specs/2026-11-24-phase2b-self-built-design.md#2-owner-decisions)
+  - [3. Goals, non-goals, anti-goals](specs/2026-11-24-phase2b-self-built-design.md#3-goals-non-goals-anti-goals)
+  - [4. Approaches](specs/2026-11-24-phase2b-self-built-design.md#4-approaches)
+  - [5. Design](specs/2026-11-24-phase2b-self-built-design.md#5-design)
+    - [5.1 Artifact types](specs/2026-11-24-phase2b-self-built-design.md#51-artifact-types)
+    - [5.2 Pipeline](specs/2026-11-24-phase2b-self-built-design.md#52-pipeline)
+    - [5.3 Sandbox layer (`core/sandbox/`)](specs/2026-11-24-phase2b-self-built-design.md#53-sandbox-layer-coresandbox)
+    - [5.4 Flow](specs/2026-11-24-phase2b-self-built-design.md#54-flow)
+  - [6. Constraints](specs/2026-11-24-phase2b-self-built-design.md#6-constraints)
+  - [7. Calls made by the main thread (owner may change)](specs/2026-11-24-phase2b-self-built-design.md#7-calls-made-by-the-main-thread-owner-may-change)
+  - [8. Left to the builder (sa/spec)](specs/2026-11-24-phase2b-self-built-design.md#8-left-to-the-builder-saspec)
 
 ## spikes
 

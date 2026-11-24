@@ -89,6 +89,8 @@ class Scope:
         space = str(space) if space is not None else None
         if not space or not _CU(space):
             return None
+        if len(self._cache) > 5000:
+            self._cache.clear()
         self._cache[key] = (self.clock(), space)
         return space
 

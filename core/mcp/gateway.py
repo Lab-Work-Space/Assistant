@@ -6,6 +6,7 @@ Args and results are never logged or audited; only a 16-hex args hash, the class
 """
 import hashlib
 import json
+import asyncio
 import re
 import time
 import unicodedata
@@ -49,7 +50,6 @@ class Gateway:
         self.clock = clock
         self._specs: dict[str, ToolSpec] = {}
         self._win: dict[tuple, deque] = {}
-        self._day: dict[str, tuple[float, int]] = {}
         self._runs: dict[str, int] = {}
         self._quiet: dict[str, float] = {}
         self.generic = None  # set by ext: the generic approval handler (rejected cards)
@@ -93,9 +93,8 @@ class Gateway:
 
     # ---- offer (R-CTX)
     def _spec(self, svc: str, tp) -> ToolSpec | None:
-        s = self._specs.get(tp.registered)
-        if s is not None:
-            return s
+        if tp.registered in self._specs:  # None = tool_invalid, cached so it is not rebuilt and logged every offer
+            return self._specs[tp.registered]
         live = self.host.live_tools(svc).get(tp.tool)
         try:
             schema = P.offered_schema(tp, live["inputSchema"])
@@ -108,6 +107,7 @@ class Gateway:
             self.ctx.tools.register(s)
         except Exception as e:
             self._log("mcp.tool_register_failed", "WARNING", service=svc, tool=tp.registered, error=type(e).__name__)
+            self._specs[tp.registered] = None
             return None
         self._specs[tp.registered] = s
         return s
@@ -117,12 +117,6 @@ class Gateway:
             return []
         return [s for tp in self.host.active(svc).values() if tp.cls in OFFER_CLASSES
                 for s in [self._spec(svc, tp)] if s is not None]
-
-    async def offer(self, persona) -> list[ToolSpec]:
-        out: list[ToolSpec] = []
-        for svc in SERVICES:
-            out += await self.offer_service(persona, svc)
-        return out
 
     async def initial(self, persona, text: str) -> list[ToolSpec]:
         """R-CTX: mcp_use (when anything is offered) plus tools of services named in the human's message."""
@@ -135,7 +129,7 @@ class Gateway:
             for svc in SERVICES:
                 tools = await self.offer_service(persona, svc)
                 any_offer = any_offer or bool(tools)
-                if tools and any(re.search(rf"\b{re.escape(a)}\b", low) for a in ALIASES[svc]):
+                if tools and any(re.search(rf"(?<![a-z0-9]){re.escape(a)}(?![a-z0-9])", low) for a in ALIASES[svc]):
                     out += tools
             use = self._specs.get("mcp_use")
             return ([use] if use is not None and any_offer else []) + out
@@ -176,14 +170,15 @@ class Gateway:
         return w
 
     async def _day_count(self, pid: str) -> int:
-        now = self.clock()
-        st = self._day.get(pid)
-        if st is None or now - st[0] >= 86400:
-            n = await self.ctx.db.fetchval(
-                "SELECT count(*) FROM audit_log WHERE scope='mcp' AND action='call' AND actor=?1 "
-                "AND at > strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 day')", f"agent:{pid}")
-            st = self._day[pid] = (now, int(n or 0))
-        return st[1]
+        key = (pid, "day")
+        if key not in self._win:  # seed once from audit; ages (s) ascend-sorted so the deque stays ordered
+            now = self.clock()
+            rows = await self.ctx.db.fetch(
+                "SELECT (julianday('now')-julianday(at))*86400 AS age FROM audit_log WHERE scope='mcp' "
+                "AND action='call' AND actor=?1 AND at > strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 day') "
+                "ORDER BY at", f"agent:{pid}")
+            self._win[key] = deque(now - float(r["age"]) for r in rows)
+        return len(self._window(key, 86400))
 
     async def _refuse_audit(self, p, svc, tool, cls, token, args, ctx, ms=0):
         lvl = "WARNING" if token in _LOUD else "INFO"
@@ -200,6 +195,7 @@ class Gateway:
     # ---- the gateway
     async def handle(self, ctx, svc: str, tool: str, args: dict) -> ToolResult:
         t0 = self.clock()
+        deadline = asyncio.get_running_loop().time()  # + call_timeout_s: must fire inside the registry's 5 s margin
         p = ctx.agent
         pol_tp = self.policies.get(svc, {}).get(tool)
         reg = pol_tp.registered if pol_tp else tool
@@ -262,14 +258,17 @@ class Gateway:
         wsvc.append(self.clock())
         if writes:
             ww.append(self.clock())
-        self._day[p.id] = (self._day[p.id][0], self._day[p.id][1] + 1)
+        self._window((p.id, "day"), 86400).append(self.clock())
         op = None
         if svc == "hostinger" and isinstance(final.get("operation"), str):
             op = final["operation"][:64]
         if cls == "irreversible":
             return await self._request(ctx, tp, final, t0, op)
         try:
-            ok, text = await self.host.call(svc, tool, final)
+            async with asyncio.timeout_at(deadline + cfg.call_timeout_s):
+                ok, text = await self.host.call(svc, tool, final)
+        except TimeoutError:  # scope lookups / semaphore wait ate the budget; still audited below
+            ok, text, err = False, "", "tool_timeout"
         except HostError as e:
             ok, text, err = False, "", e.code
             if e.code == "service_unavailable":

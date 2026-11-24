@@ -81,6 +81,9 @@ def test_install_script_hardened():
     for needle in ("set -euo pipefail", "--proto '=https' --tlsv1.2", "--ignore-scripts", "--require-hashes",
                    "--only-binary=:all:", "gh attestation verify", "against server.toml"):
         assert needle in t
+    assert "trap 'rm -rf \"$tmp\"' EXIT" in t and "RETURN" not in t
+    assert t.index('sha256_of "$tmp/github-mcp-server"') < t.index("install -m 0755")   # verify before overwrite
+    assert "/mcp/*/.dl.*" in (sh.parents[1] / ".gitignore").read_text()
 
 
 def test_g040_02_hostinger():

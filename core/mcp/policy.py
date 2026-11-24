@@ -163,7 +163,6 @@ class ToolPolicy:
 @dataclass(frozen=True)
 class ServicePolicy:
     service: str
-    server_version: str
     tools: dict                   # live tool name -> ToolPolicy
 
 
@@ -302,7 +301,7 @@ def parse_policy(data: dict) -> ServicePolicy:
             raise PolicyError("policy_name_collision", name)
         seen.add(tp.registered)
         tools[name] = tp
-    return ServicePolicy(svc, data["server_version"], tools)
+    return ServicePolicy(svc, tools)
 
 
 def parse_access(data: dict) -> Access:

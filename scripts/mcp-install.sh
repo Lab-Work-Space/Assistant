@@ -34,7 +34,7 @@ install_github() {
   base="https://github.com/github/github-mcp-server/releases/download/v${ver}"
   mkdir -p "$dir"
   tmp="$(mktemp -d "$dir/.dl.XXXXXX")"
-  trap 'rm -rf "$tmp"' RETURN
+  trap 'rm -rf "$tmp"' EXIT
   curl --proto '=https' --tlsv1.2 -fsSL -o "$tmp/$asset" "$base/$asset"
   curl --proto '=https' --tlsv1.2 -fsSL -o "$tmp/checksums.txt" "$base/github-mcp-server_${ver}_checksums.txt"
   actual="$(sha256_of "$tmp/$asset")"
@@ -48,16 +48,16 @@ install_github() {
   fi
   tar -tzf "$tmp/$asset" | grep -Fxq github-mcp-server || die "binary member not found in archive"
   tar -xzf "$tmp/$asset" -C "$tmp" github-mcp-server
-  mkdir -p "$dir/bin"
-  install -m 0755 "$tmp/github-mcp-server" "$dir/bin/github-mcp-server"
-  # the host re-hashes the binary at every start against pin.binary_sha256 (G040-13, G2T040-02)
-  actual="$(sha256_of "$dir/bin/github-mcp-server")"
+  # the host re-hashes the binary at every start against pin.binary_sha256 (G040-13, G2T040-02); check before install
+  actual="$(sha256_of "$tmp/github-mcp-server")"
   bin_anchor="$(toml "$cfg" "pin.binary_sha256.$key")"
   if [[ "$bin_anchor" =~ ^[0-9a-f]{64}$ ]]; then
-    [ "$actual" = "$bin_anchor" ] || { rm -f "$dir/bin/github-mcp-server"; die "binary sha256 mismatch against server.toml"; }
+    [ "$actual" = "$bin_anchor" ] || die "binary sha256 mismatch against server.toml"
   else
     echo "mcp-install: binary_sha256 for $key is PENDING; verify out of band, then set it in server.toml: $actual" >&2
   fi
+  mkdir -p "$dir/bin"
+  install -m 0755 "$tmp/github-mcp-server" "$dir/bin/github-mcp-server"
   echo "github: installed v$ver ($key)"
 }
 

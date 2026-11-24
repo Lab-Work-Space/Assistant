@@ -8,7 +8,7 @@ import pytest
 
 from core.discord.embeds import approval_embed
 from core.interfaces import Actor
-from tests.test_mcp_gateway import PS, audit, call, env, gh_calls, handle, hs_calls, tctx  # noqa: F401
+from tests.test_mcp_gateway import PS, audit, offer_all, call, env, gh_calls, handle, hs_calls, tctx  # noqa: F401
 from tests.test_mcp_host import write_cfg
 
 ADMIN = Actor("cli", "admin")
@@ -91,10 +91,10 @@ async def test_irreversible_reject_runs_nothing_and_tamper_refused(env):
 
 # 5 fired / moved head loses access immediately, even with a pending approval (request 3)
 async def test_fired_or_moved_head_loses_access_immediately(env):
-    assert await env.gw.offer(PS["tek"])
+    assert await offer_all(env.gw, PS["tek"])
     aid = (await call(env, "tek", "github", "elicit_confirm", {"owner": "acme", "repo": "dev-x"})).data["approval_id"]
     env.disabled.add("tek")                                   # fired
-    assert await env.gw.offer(PS["tek"]) == []
+    assert await offer_all(env.gw, PS["tek"]) == []
     assert (await handle(env, "tek", "github", "read_echo", {})).error == "mcp_refused:not_allowed"
     await env.approvals.decide(aid, "approve", ADMIN)
     await settle(env)

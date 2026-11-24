@@ -1,4 +1,5 @@
 """Approved irreversible MCP calls: claim once, re-check everything, call with the stored args, report (spec 3.6)."""
+import asyncio
 import json
 
 from core.approvals.depts import code_of
@@ -81,6 +82,8 @@ async def replay(gw, row) -> None:
         return
     claimed = await gw.ctx.db.fetchrow(CLAIM, str(row["id"]))
     if claimed is None:
+        if (row["payload"] or {}).get("mcp", {}).get("state") is None:  # approved, unclaimed, past the 15 min window
+            gw._log("mcp.replay_stale", "WARNING", approval=row["code"])
         return
     aid = str(claimed["id"])
     m = (claimed["payload"] or {}).get("mcp") or {}
@@ -114,9 +117,12 @@ async def recover(gw) -> None:
                             "AND status='approved' AND json_extract(payload,'$.mcp.state') IS NULL "
                             "AND decided_at <= strftime('%Y-%m-%dT%H:%M:%fZ','now','-15 minutes') RETURNING *"):
         gw._log("mcp.replay_stale", "WARNING", approval=r["code"])
-    for r in await db.fetch("SELECT * FROM approvals WHERE kind='mcp_irreversible' AND status='approved' "
-                            "AND json_extract(payload,'$.mcp.state') IS NULL"):
+    async def one(r):
         svc = (r["payload"] or {}).get("mcp", {}).get("service")
         if isinstance(svc, str):
             await gw.host.wait_state(svc, timeout=30)
         await replay(gw, r)
+
+    await asyncio.gather(*[one(r) for r in await db.fetch(
+        "SELECT * FROM approvals WHERE kind='mcp_irreversible' AND status='approved' "
+        "AND json_extract(payload,'$.mcp.state') IS NULL")])

@@ -13,7 +13,7 @@ from core.agent_tools.registry import Registry
 from core.approvals.service import PgApprovalService
 from core.interfaces import AppContext, Persona, ToolCall, ToolContext
 from core.mcp import policy as P
-from core.mcp.gateway import Gateway
+from core.mcp.gateway import SERVICES, Gateway
 from core.mcp.host import McpHost
 from core.mcp.scope import Scope, ScopeError
 from core.settings.service import SettingsService
@@ -141,6 +141,10 @@ async def make_env(tmp_path, db, *, enabled_hosts=True):
     return e
 
 
+async def offer_all(gw, p):
+    return [s for svc in SERVICES for s in await gw.offer_service(p, svc)]
+
+
 async def _noop():
     return None
 
@@ -152,7 +156,7 @@ def tctx(p, offered=None, run="r1"):
 async def call(e, pid, svc, tool, args, run="r1"):
     """Invoke through the real registry, as the engine would."""
     p = PS[pid]
-    allowed = await e.gw.offer(p)
+    allowed = await offer_all(e.gw, p)
     spec = next((s for s in allowed if s.name.endswith("_" + tool.replace("-", "_"))
                  and s.name.startswith(f"mcp_{svc}_")), None)
     assert spec is not None, f"not offered: {pid} {svc}.{tool}"
@@ -187,28 +191,28 @@ def hs_calls(e):
 # ---------------- AT-3 role, AT-14 kill switch
 async def test_roles_and_offer(env):
     names = lambda l: {s.name for s in l}
-    praw = names(await env.gw.offer(PS["praw"]))
+    praw = names(await offer_all(env.gw, PS["praw"]))
     assert "mcp_github_write_note" in praw and "mcp_hostinger_execute" in praw
     assert "mcp_github_change_settings" not in praw and "mcp_github_buy" not in praw   # settings/payment never offered
-    assert names(await env.gw.offer(PS["tek"])) >= {"mcp_github_read_echo"} and not any("hostinger" in n for n in names(await env.gw.offer(PS["tek"])))
-    assert await env.gw.offer(PS["qin"]) == []          # not the head
-    assert await env.gw.offer(PS["mali"]) == []         # dept not mapped
-    assert names(await env.gw.offer(PS["phupha"])) == {"mcp_hostinger_execute"}
+    assert names(await offer_all(env.gw, PS["tek"])) >= {"mcp_github_read_echo"} and not any("hostinger" in n for n in names(await offer_all(env.gw, PS["tek"])))
+    assert await offer_all(env.gw, PS["qin"]) == []          # not the head
+    assert await offer_all(env.gw, PS["mali"]) == []         # dept not mapped
+    assert names(await offer_all(env.gw, PS["phupha"])) == {"mcp_hostinger_execute"}
     await env.settings.set("approval.head.dev", "qin", "cli:admin")  # old head refused, new head offered, no restart
-    assert await env.gw.offer(PS["tek"]) == [] and await env.gw.offer(PS["qin"]) != []
+    assert await offer_all(env.gw, PS["tek"]) == [] and await offer_all(env.gw, PS["qin"]) != []
     r = await handle(env, "tek", "github", "read_echo", {"text": "x"})
     assert r.error == "mcp_refused:not_allowed"
 
 
 async def test_head_disabled_and_praw_disabled(env):
     env.disabled |= {"tek", "praw"}
-    assert await env.gw.offer(PS["tek"]) == [] and await env.gw.offer(PS["praw"]) == []
+    assert await offer_all(env.gw, PS["tek"]) == [] and await offer_all(env.gw, PS["praw"]) == []
     assert (await handle(env, "praw", "github", "read_echo", {})).error == "mcp_refused:not_allowed"   # G040-09 (Praw)
 
 
 async def test_kill_switch_refuses_and_offers_nothing(env):
     await env.settings.set("mcp.enabled", "off", "cli:admin")
-    assert await env.gw.offer(PS["praw"]) == [] and await env.gw.initial(PS["praw"], "use github") == []
+    assert await offer_all(env.gw, PS["praw"]) == [] and await env.gw.initial(PS["praw"], "use github") == []
     r = await handle(env, "praw", "github", "read_echo", {})
     assert r.error == "mcp_refused:mcp_disabled" and gh_calls(env) == []
     assert [a["old_value"] for a in await audit(env, "refuse")] == ["mcp_disabled"]
@@ -440,7 +444,7 @@ async def test_mcp_use_needs_offered_and_enabled(env):
 
 
 async def test_override_registry_never_offers_mcp(env):
-    await env.gw.offer(PS["praw"])
+    await offer_all(env.gw, PS["praw"])
     assert [s.name for s in env.ctx.tools.for_agent(PS["praw"])] == []        # "*" never picks override_only specs
     assert [s.name for s in env.ctx.tools.for_agent(PS["praw"], ("approval_decide",))] == []
 
@@ -593,3 +597,49 @@ async def test_card_refuses_format_and_control_chars(env):  # G2T040-10
         r = await call(env, "praw", "github", "delete_forever", {"id": bad})
         assert r.error == "mcp_refused:args_unreviewable"
     assert await env.db.fetchval("SELECT count(*) FROM approvals") == 0
+
+
+# ---------------- audit fixes (TASK-040): cancelled write audited, day window ages, alias boundary, spec cache
+
+async def test_write_that_outlives_its_budget_is_audited_as_tool_timeout(env):
+    gw, real_cfg = env.gw, env.host.config
+
+    async def slow_role(p, svc):
+        await asyncio.sleep(0.2)               # stands in for slow scope lookups / semaphore wait
+        return True
+
+    async def slow_call(*a, **k):
+        await asyncio.sleep(10)
+    gw.role_ok = slow_role
+    env.host.call = slow_call
+    env.host.config = lambda svc: types.SimpleNamespace(call_timeout_s=0.3, rate_per_min=60)
+    r = await asyncio.wait_for(handle(env, "praw", "github", "write_note", {"body": "x"}), 2)
+    env.host.config = real_cfg
+    assert r.error == "mcp_error:tool_timeout"
+    assert [x["old_value"] for x in await audit(env, "call")] == ["error:tool_timeout"]
+
+
+async def test_daily_cap_seed_ages_out(env):
+    t = [1000.0]
+    env.gw.clock = lambda: t[0]
+    await env.settings.set("mcp.calls_per_day", "10", "cli:admin")
+    for _ in range(10):
+        await env.db.execute("INSERT INTO audit_log (scope, ref, action, actor) VALUES ('mcp','github:x','call','agent:praw')")
+    assert (await handle(env, "praw", "github", "read_echo", {})).error == "mcp_refused:rate_limited"
+    t[0] += 86401                                                    # the seeded calls are now older than 24 h
+    assert (await handle(env, "praw", "github", "read_echo", {})).ok
+
+
+async def test_initial_alias_boundary(env):
+    names = lambda L: {s.name for s in L}
+    assert "mcp_github_read_echo" in names(await env.gw.initial(PS["praw"], "เช็คgithubหน่อย"))
+    assert "mcp_github_read_echo" not in names(await env.gw.initial(PS["praw"], "check githubx"))
+
+
+async def test_invalid_tool_spec_cached_as_none(env):
+    tp = next(iter(env.host.active("github").values()))
+    env.gw._specs.pop(tp.registered, None)
+    bad = types.SimpleNamespace(registered="mcp_github_bad", tool="nope", cls="read")
+    assert env.gw._spec("github", bad) is None and env.gw._specs["mcp_github_bad"] is None
+    n = len(env.log.rows)
+    assert env.gw._spec("github", bad) is None and len(env.log.rows) == n   # not rebuilt, not logged again
