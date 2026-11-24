@@ -33,6 +33,7 @@ _ERR = {
     "dept_name_taken": "Department name already used. / ชื่อแผนกซ้ำ",
     "dept_name_invalid": "Invalid department name (1-64 printable chars). / ชื่อแผนกไม่ถูกต้อง",
     "same_dept": "Already in that department. / อยู่แผนกนี้อยู่แล้ว",
+    "dept_partial": "Department added, but its approval channel or head was not set. Fix with /setting or /move. / เพิ่มแผนกแล้ว แต่ตั้งห้องหรือหัวหน้าไม่สำเร็จ",
     "channel_invalid": "Invalid approval channel. / ห้องอนุมัติไม่ถูกต้อง",
 }
 for _k in ("id_taken", "id_reserved", "suffix_taken"):

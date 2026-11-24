@@ -63,7 +63,9 @@ import pytest as _pytest
 
 @_pytest.mark.parametrize("word", ["admins", "approvals", "approving", "bypassing", "ignoring", "ignored", "overriding",
                                    "refunds", "invoices", "contracts", "budgets", "discounts", "deleting", "deleted",
-                                   "escalated"])
+                                   "escalated", "overridden", "overrode", "spent", "salaries", "monies", "transferred",
+                                   "transferring", "instructed", "unauthorized", "unapproved", "preapproved", "superadmin",
+                                   "sysadmin", "api keys"])
 def test_inflected_keywords_force_hq(word):
     """Gate 2 G2T033-02: plural and -ing/-ed forms must not slip past G1."""
     from core.growth.g1 import hq_reason

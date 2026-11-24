@@ -13,7 +13,10 @@ _ASCII = (
     "budget spend spending price pricing cost costs payment payments pay paid invoice refund discount salary money baht thb "
     "usd fund funds transfer policy policies rule rules regulation compliance legal contract law safety override bypass "
     "ignore disregard jailbreak instruction instructions escalate escalation hire fire delete destroy deploy production "
-    "root sudo pii private confidential email phone address share forward publish upload external webhook link url"
+    "root sudo pii private confidential email phone address share forward publish upload external webhook link url "
+    # Gate 2 re-check: irregular forms and prefixed compounds the suffix rule cannot reach
+    "overridden overrode spent salaries monies transferred transferring instruct unauthorize unauthorise unapprove "
+    "preapprove superadmin sysadmin"
 ).split() + ["api key", "apikey", "system prompt", "skip review", "customer data", "personal data", "password reset"]
 _SYMBOLS = ("$", "฿")
 _THAI = (

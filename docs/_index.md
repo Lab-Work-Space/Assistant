@@ -316,6 +316,7 @@ Folder index: [security/_index.md](security/_index.md)
   - [Areas with no finding](security/2026-11-24-gate2-task033.md#areas-with-no-finding)
   - [Residual risk (accepted)](security/2026-11-24-gate2-task033.md#residual-risk-accepted)
   - [Inputs and file hashes (md5 at end of review)](security/2026-11-24-gate2-task033.md#inputs-and-file-hashes-md5-at-end-of-review)
+  - [Re-check (2026-11-24)](security/2026-11-24-gate2-task033.md#re-check-2026-11-24)
 
 ## specs
 

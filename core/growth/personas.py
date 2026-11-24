@@ -323,9 +323,14 @@ class StaffService:
                 await self._audit(tx, "dept", code, "add", None, None,
                                   mask_secrets(json.dumps({"name": name, "slug": slug}, ensure_ascii=False))[:4000], actor)
             register_dept(slug, code)
-            if channel:
-                await st.set(f"approval.channel.{slug}", channel, actor.ref)
-            if head:
-                await self._move(head, slug, True, actor)
+            try:  # the dept row is committed; a late failure must say so instead of looking like nothing happened
+                if channel:
+                    await st.set(f"approval.channel.{slug}", channel, actor.ref)
+                if head:
+                    await self._move(head, slug, True, actor)
+            except Exception as e:
+                self.ctx.log.write_log("growth", "dept.add_partial", "WARNING", code=code,
+                                       step=str(getattr(e, "code", type(e).__name__))[:32], by=actor.ref)
+                raise GrowthError("dept_partial") from None
             self.ctx.log.write_log("growth", "dept.added", "WARNING", code=code, by=actor.ref)
             return code

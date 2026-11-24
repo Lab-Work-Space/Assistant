@@ -220,3 +220,17 @@ async def test_startup_hired_token_own_client_fired_skipped_unknown_refused(tmp_
     assert "persona.token_fired" in (tmp_path / "logs" / "app.jsonl").read_text()
     env = fake_env(tmp_path, DATABASE_PATH=path, LOG_DIR=str(tmp_path / "logs"), DISCORD_BOT_TOKEN_NOBODY="tok-nb-hhhhhhhhhhhhhhhhhh", DISCORD_APP_ID_NOBODY="9")
     assert await amain(env, install_signals=False) == 2 and "unknown_persona_token:NOBODY" in capsys.readouterr().err
+
+
+async def test_add_dept_late_failure_reports_partial(db, depts_snapshot):
+    """Gate 2 G2T033-05: the dept row commits first; a failing head step must say the dept exists."""
+    sv, ctx, log = await mk(db)
+    ctx.settings.is_disabled = lambda pid: False
+
+    async def boom(*a, **k):
+        raise GrowthError("head_invalid")
+    sv._move = boom
+    with pytest.raises(GrowthError) as e:
+        await sv.add_dept("QAT", "Quality", "tek", None, ADMIN)
+    assert e.value.code == "dept_partial"
+    assert await db.fetchval("SELECT code FROM departments") == "QAT" and "qat" in depts.DEPT_SLUGS
