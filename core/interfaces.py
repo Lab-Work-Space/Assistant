@@ -139,6 +139,7 @@ class ToolContext:
     human_actor: Actor | None = None
     thread_record_id: str | None = None
     approval_id: str | None = None  # server-set, only on approval_review runs
+    offered: list | None = None  # server-set: the run's live `allowed` list (R-CTX); None when tools_override is used
 
 
 
@@ -335,6 +336,7 @@ class AppContext:
     approval_presenter: Any | None = None    # ApprovalPresenter, set by the surface
     settings: Any | None = None              # SettingsService, set by core.settings.ext
     growth: Any | None = None                # GrowthService, set by core.growth.ext (TASK-033)
+    mcp: Any | None = None                   # Gateway, set by core.mcp.ext (TASK-040)
 
 
 def require_real_budget(ctx: AppContext) -> None:

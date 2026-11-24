@@ -102,6 +102,9 @@ class Engine:
         body.append(wrap_untrusted(req.text, src, str(req.human_user_id or ""), req.author_name))
         msgs = [ChatMessage("user", "\n".join(body))]
         allowed = self.ctx.tools.for_agent(persona, req.tools_override) if self.ctx.tools else []
+        if req.tools_override is None and self.ctx.mcp:  # R-CTX (G040-05): tctx.offered aliases `allowed`
+            allowed += await self.ctx.mcp.initial(persona, req.text)
+            tctx.offered = allowed
         model_chars = 0
         try:
             async with asyncio.timeout(c.agent_run_timeout_s):

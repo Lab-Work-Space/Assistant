@@ -1,0 +1,114 @@
+# MCP role allowlist and department scopes, TASK-040 MCP-07 (spec 3.3 step 3, 3.10).
+# Praw is allowed by id in code (persona.id == "praw", not disabled); a head is allowed when its department code is listed for the service,
+# it is the current approval.head.<code>, and it is not disabled. A department missing from a list gets nothing.
+# Reads are company-wide; scope only limits writes (class above read).
+
+# OWN-05 (owner, PLACEHOLDER): default owner/org for create_repository and fork_repository. Empty = repo create/fork refused for heads.
+github_default_owner = ""
+
+# First access map (design 5.2, owner may change).
+[services.github]
+depts = ["DEV", "PRD"]
+[services.clickup]
+depts = ["FIN", "HR", "MKT", "SAL", "OPS", "IT", "LEG", "PRC", "SUP", "DAT", "DSN", "PRD", "DEV"]
+[services.google]
+depts = ["FIN", "HR", "MKT", "SAL", "OPS", "IT", "LEG", "PRC", "SUP", "DAT", "DSN", "PRD", "DEV"]
+[services.hostinger]
+depts = ["IT"]
+
+
+# OWN-05 (owner, PLACEHOLDER): write scopes per department. EMPTY LIST = NO WRITE for that head on that service (secure default).
+#   github_repos     : repo-name globs only, no "/" (the owner is always github_default_owner; G040-01), e.g. "dev-*"
+#   clickup_spaces   : ClickUp space ids      google_calendars : calendar ids (never "primary": Praw only)
+#   google_folders   : Drive folder ids       hostinger_vms    : VM ids (digits)
+
+[scopes.FIN]
+github_repos = []
+clickup_spaces = []
+google_calendars = []
+google_folders = []
+hostinger_vms = []
+
+[scopes.HR]
+github_repos = []
+clickup_spaces = []
+google_calendars = []
+google_folders = []
+hostinger_vms = []
+
+[scopes.MKT]
+github_repos = []
+clickup_spaces = []
+google_calendars = []
+google_folders = []
+hostinger_vms = []
+
+[scopes.SAL]
+github_repos = []
+clickup_spaces = []
+google_calendars = []
+google_folders = []
+hostinger_vms = []
+
+[scopes.OPS]
+github_repos = []
+clickup_spaces = []
+google_calendars = []
+google_folders = []
+hostinger_vms = []
+
+[scopes.IT]
+github_repos = []
+clickup_spaces = []
+google_calendars = []
+google_folders = []
+hostinger_vms = []
+
+[scopes.LEG]
+github_repos = []
+clickup_spaces = []
+google_calendars = []
+google_folders = []
+hostinger_vms = []
+
+[scopes.PRC]
+github_repos = []
+clickup_spaces = []
+google_calendars = []
+google_folders = []
+hostinger_vms = []
+
+[scopes.SUP]
+github_repos = []
+clickup_spaces = []
+google_calendars = []
+google_folders = []
+hostinger_vms = []
+
+[scopes.DAT]
+github_repos = []
+clickup_spaces = []
+google_calendars = []
+google_folders = []
+hostinger_vms = []
+
+[scopes.DSN]
+github_repos = []
+clickup_spaces = []
+google_calendars = []
+google_folders = []
+hostinger_vms = []
+
+[scopes.PRD]
+github_repos = []
+clickup_spaces = []
+google_calendars = []
+google_folders = []
+hostinger_vms = []
+
+[scopes.DEV]
+github_repos = []
+clickup_spaces = []
+google_calendars = []
+google_folders = []
+hostinger_vms = []

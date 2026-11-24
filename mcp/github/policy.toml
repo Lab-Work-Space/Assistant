@@ -1,0 +1,1180 @@
+# github policy, TASK-040 MCP-07 (spec Appendix A). Anything not listed is blocked (fail closed).
+# tool_sha256 = "" means PENDING: it never matches a live tool, so every tool stays blocked
+# until the owner/tester fills it from `python -m core.mcp dump github` (needs the pinned server installed).
+# Conventions used by this file (MCP-02 loader must accept them):
+#   scope.kind: github_repo | clickup_space | google_calendar | google_drive | hostinger_vm; no `scope` = Praw only.
+#   force values starting "$access:" / "$env:" are resolved from mcp/access.toml / the bot env at call time.
+#   ids = {dot path = kind} (G040-01); an absent key is skipped. Rule paths may use [*]; strings compare strip().casefold().
+#   Base class of a dispatch tool is the lowest class among its dispatch values.
+# G040-03: workflow/CODEOWNERS/dependabot paths -> settings; private/public forced; fork destination forced.
+# `contains` rules are casefolded substrings (stricter than the glob in the Gate text).
+
+service = "github"
+server_version = "2.2.0"
+
+[tools.get_me]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_teams]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_team_members]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.ui_get]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_commit]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_file_contents]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_file_blame]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_repository_tree]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_latest_release]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_release_by_tag]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_tag]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_branches]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_commits]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_releases]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_tags]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_repository_collaborators]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.search_code]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.search_commits]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.search_repositories]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.search_issues]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.search_pull_requests]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.search_users]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.search_orgs]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.issue_read]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_issues]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_issue_fields]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_issue_types]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_label]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_label]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.pull_request_read]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_pull_requests]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.actions_get]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.actions_list]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_job_logs]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_job_logs_actions]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_discussion]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_discussion_comments]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_discussions]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_discussion_categories]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_gist]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_gists]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_notifications]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_notification_details]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_starred_repositories]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.projects_get]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.projects_list]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.repository_ruleset_read]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.custom_properties_read]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_code_quality_finding]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_code_scanning_alert]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_code_scanning_alerts]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_dependabot_alert]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_dependabot_alerts]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_global_security_advisory]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_global_security_advisories]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_org_repository_security_advisories]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_repository_security_advisories]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_automation]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_automation_revision]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_automations_configuration_for_repository]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_automations]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_automation_revisions]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_available_automation_tools]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.list_available_automation_triggers]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.add_issue_comment]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "body", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.update_issue_comment]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "body", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.create_issue]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "body", style = "bold_prefix", set_if_absent = true }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.issue_write]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "body", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+[[tools.issue_write.rules]]
+when = { arg = "state", equals = "closed" }
+class = "delete_recoverable"
+
+[tools.update_issue_body]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "body", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.update_issue_title]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.update_issue_state]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+[[tools.update_issue_state.rules]]
+when = { arg = "state", equals = "closed" }
+class = "delete_recoverable"
+
+[tools.update_issue_labels]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.update_issue_assignees]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.update_issue_milestone]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.update_issue_type]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.set_issue_fields]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.sub_issue_write]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.add_sub_issue]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.remove_sub_issue]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.reprioritize_sub_issue]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.add_issue_reaction]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.add_issue_comment_reaction]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.remove_issue_reaction]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.remove_issue_comment_reaction]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.hide_issue_comment]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.unhide_issue_comment]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.create_branch]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.create_or_update_file]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "message", style = "commit_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+[[tools.create_or_update_file.rules]]
+when = { arg = "path", contains = ".github/workflows" }
+class = "settings"
+[[tools.create_or_update_file.rules]]
+when = { arg = "path", contains = ".github/actions" }
+class = "settings"
+[[tools.create_or_update_file.rules]]
+when = { arg = "path", contains = "codeowners" }
+class = "settings"
+[[tools.create_or_update_file.rules]]
+when = { arg = "path", contains = ".github/dependabot.yml" }
+class = "settings"
+[[tools.create_or_update_file.rules]]
+when = { arg = "path", contains = ".github/dependabot.yaml" }
+class = "settings"
+
+[tools.push_files]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "message", style = "commit_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+[[tools.push_files.rules]]
+when = { arg = "files[*].path", contains = ".github/workflows" }
+class = "settings"
+[[tools.push_files.rules]]
+when = { arg = "files[*].path", contains = ".github/actions" }
+class = "settings"
+[[tools.push_files.rules]]
+when = { arg = "files[*].path", contains = "codeowners" }
+class = "settings"
+[[tools.push_files.rules]]
+when = { arg = "files[*].path", contains = ".github/dependabot.yml" }
+class = "settings"
+[[tools.push_files.rules]]
+when = { arg = "files[*].path", contains = ".github/dependabot.yaml" }
+class = "settings"
+
+[tools.create_pull_request]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "body", style = "bold_prefix", set_if_absent = true }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.update_pull_request]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "body", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+[[tools.update_pull_request.rules]]
+when = { arg = "state", equals = "closed" }
+class = "delete_recoverable"
+
+[tools.update_pull_request_body]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "body", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.update_pull_request_title]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.update_pull_request_state]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+[[tools.update_pull_request_state.rules]]
+when = { arg = "state", equals = "closed" }
+class = "delete_recoverable"
+
+[tools.update_pull_request_draft_state]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.update_pull_request_branch]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.merge_pull_request]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "commit_title", style = "commit_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.request_pull_request_reviewers]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.create_pull_request_review]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "body", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.pull_request_review_write]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "body", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+[[tools.pull_request_review_write.rules]]
+when = { arg = "method", contains = "delete" }
+class = "irreversible"
+
+[tools.submit_pending_pull_request_review]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "body", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.add_comment_to_pending_review]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "body", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.add_pull_request_review_comment]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "body", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.add_reply_to_pull_request_comment]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "body", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.add_pull_request_review_comment_reaction]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.remove_pull_request_review_comment_reaction]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.resolve_review_thread]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.unresolve_review_thread]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.hide_pull_request_review]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.unhide_pull_request_review]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.hide_pull_request_review_comment]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.unhide_pull_request_review_comment]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.label_write]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+[tools.label_write.dispatch]
+arg = "method"
+map = { create = "write", update = "write", delete = "irreversible" }
+
+[tools.discussion_comment_write]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "body", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+[tools.discussion_comment_write.dispatch]
+arg = "method"
+map = { add = "write", reply = "write", update = "write", mark_answer = "write", unmark_answer = "write", delete = "irreversible" }
+
+[tools.projects_write]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+[[tools.projects_write.rules]]
+when = { arg = "method", contains = "delete" }
+class = "irreversible"
+
+[tools.star_repository]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.unstar_repository]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.fork_repository]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["organization", "repo"] }
+strip = []
+force = { organization = "$access:github_default_owner" }
+ids = { owner = "gh_owner", repo = "gh_repo", organization = "gh_owner" }
+
+[tools.create_repository]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["organization", "name"] }
+strip = []
+force = { private = true, organization = "$access:github_default_owner" }  # G2T040-07: call owner == scope-checked owner
+ids = { organization = "gh_owner", name = "gh_repo" }
+
+[tools.create_gist]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = { public = false }
+
+[tools.update_gist]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+
+[tools.dismiss_notification]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+
+[tools.mark_all_notifications_read]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+
+[tools.delete_file]
+class = "delete_recoverable"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+attribution = [{ field = "message", style = "commit_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+[[tools.delete_file.rules]]
+when = { arg = "path", contains = ".github/workflows" }
+class = "settings"
+[[tools.delete_file.rules]]
+when = { arg = "path", contains = ".github/actions" }
+class = "settings"
+[[tools.delete_file.rules]]
+when = { arg = "path", contains = "codeowners" }
+class = "settings"
+[[tools.delete_file.rules]]
+when = { arg = "path", contains = ".github/dependabot.yml" }
+class = "settings"
+[[tools.delete_file.rules]]
+when = { arg = "path", contains = ".github/dependabot.yaml" }
+class = "settings"
+
+[tools.delete_repository]
+class = "irreversible"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+elicits = true
+
+[tools.delete_pending_pull_request_review]
+class = "irreversible"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+scope = { kind = "github_repo", arg = ["owner", "repo"] }
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.create_repository_ruleset]
+class = "settings"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.custom_properties_write]
+class = "settings"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.manage_notification_subscription]
+class = "settings"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.manage_repository_notification_subscription]
+class = "settings"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.update_code_scanning_alert]
+class = "settings"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.update_dependabot_alert]
+class = "settings"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.update_secret_scanning_alert]
+class = "settings"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.actions_run_trigger]
+class = "payment"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.assign_copilot_to_issue]
+class = "payment"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.assign_copilot_to_issue_with_intent]
+class = "payment"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.request_copilot_review]
+class = "payment"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.create_pull_request_with_copilot]
+class = "payment"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.create_automation]
+class = "payment"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.update_automation]
+class = "payment"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.delete_automation]
+class = "payment"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.run_automation]
+class = "payment"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+ids = { owner = "gh_owner", repo = "gh_repo" }
+
+[tools.get_secret_scanning_alert]
+class = "blocked"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+
+[tools.list_secret_scanning_alerts]
+class = "blocked"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+
+[tools.get_copilot_space]
+class = "blocked"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+
+[tools.list_copilot_spaces]
+class = "blocked"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}
+
+[tools.github_support_docs_search]
+class = "blocked"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump github`
+strip = []
+force = {}

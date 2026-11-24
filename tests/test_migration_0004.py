@@ -28,7 +28,7 @@ def v3_db(tmp_path) -> str:
 @pytest.fixture
 def db(tmp_path):
     p = v3_db(tmp_path)
-    assert migrate(p) == 4
+    assert migrate(p) == 5
     c = connect(p)
     yield c
     c.close()
@@ -36,12 +36,12 @@ def db(tmp_path):
 
 def test_upgrade_preserves_rows_and_integrity(tmp_path):
     p = v3_db(tmp_path)
-    assert migrate(p) == 4
-    assert migrate(p) == 4  # idempotent
+    assert migrate(p) == 5
+    assert migrate(p) == 5  # idempotent
     c = connect(p)
     assert c.execute("SELECT scope,ref,action,actor FROM audit_log").fetchall() == [("task", "TASK-1", "edit", "cli:a")]
     assert c.execute("SELECT kind,dept,last FROM code_counters ORDER BY kind").fetchall() == [("approval", "HQ", 0), ("task", "ENG", 7)]
-    assert c.execute("SELECT max(version) FROM schema_version").fetchone()[0] == 4
+    assert c.execute("SELECT max(version) FROM schema_version").fetchone()[0] == 5
     assert c.execute("PRAGMA integrity_check").fetchall() == [("ok",)]
     assert c.execute("PRAGMA foreign_key_check").fetchall() == []
     c.close()

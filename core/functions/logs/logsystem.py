@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 
 from core.functions.logs import masking
 
-LIBRARY_LOGGERS = ("httpx", "httpcore", "discord", "discord.gateway", "discord.http", "aiohttp")
+LIBRARY_LOGGERS = ("httpx", "httpcore", "discord", "discord.gateway", "discord.http", "aiohttp", "mcp")
 
 
 class LogDirError(Exception):

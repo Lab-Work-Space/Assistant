@@ -10,6 +10,7 @@ dependencies = [
   "google-genai",
   "pyyaml",
   "jsonschema",
+  "mcp==1.30.0",  # TASK-040 MCP host client (spec 3.1); constraints/requirements.lock must be regenerated with hashes
 ]
 
 [project.optional-dependencies]

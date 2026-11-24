@@ -1,0 +1,24 @@
+# Google Workspace MCP server (workspace-mcp, MIT), TASK-040 MCP-07. Calendar, Drive, Docs, Sheets only: no Gmail (owner answer).
+# OAuth single-user with one dedicated Google account. The owner does the one-time login (`python -m core.mcp google-auth`).
+# Consent shows only calendar, drive, documents, spreadsheets (+openid/email). 2-step verification on, no admin role (G040-09).
+# Own venv: mcp/google/.venv, installed hash-pinned from requirements.lock by scripts/mcp-install.sh.
+# {svc_data} is resolved by the host to <data_dir>/mcp/google.
+name = "google"
+enabled = true
+command = ".venv/bin/workspace-mcp"
+args = ["--single-user", "--transport", "stdio", "--tools", "calendar", "drive", "docs", "sheets", "--tool-tier", "complete", "--disabled-tools", "manage_drive_access", "set_drive_file_permissions", "manage_out_of_office", "manage_focus_time", "batch_update_doc"]
+call_timeout_s = 60
+rate_per_min = 60
+max_concurrency = 4
+
+[pin]
+version = "2.6.0"
+
+[env]
+GOOGLE_OAUTH_CLIENT_ID = { from = "MCP_GOOGLE_OAUTH_CLIENT_ID", secret = true }
+GOOGLE_OAUTH_CLIENT_SECRET = { from = "MCP_GOOGLE_OAUTH_CLIENT_SECRET", secret = true }
+USER_GOOGLE_EMAIL = { from = "MCP_GOOGLE_USER_EMAIL", secret = true }
+WORKSPACE_MCP_CREDENTIALS_DIR = "{svc_data}/credentials"
+WORKSPACE_ATTACHMENT_DIR = "{svc_data}/attachments"
+WORKSPACE_MCP_DISABLE_LOCAL_FILES = "1"
+ALLOWED_FILE_DIRS = "{svc_data}/attachments"

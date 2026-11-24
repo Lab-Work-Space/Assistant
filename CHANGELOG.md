@@ -3,11 +3,25 @@
 All notable changes. Versions are git tags; full release notes are on the GitHub Releases page of the repository.
 
 ## Contents
+- [0.4.0](#040) — company tools via MCP (Phase 2A)
 - [0.3.2](#032) — real model prices, tier2 failure test
 - [0.3.1](#031) — growth hardening
 - [0.3.0](#030) — growth system
 - [0.2.0](#020) — AI team on Discord
 - [0.1.0](#010) — core engine
+
+## 0.4.0
+- **Company tools (Phase 2A).** Agents can reach ClickUp, GitHub, Google Calendar, Drive, Docs and Sheets (no Gmail), and Hostinger (VPS only), through pinned MCP servers behind one policy gateway. Praw has every service. Department heads have their own department's services and write only inside their scopes. Irreversible actions need an approval card for humans at HQ.
+- **Gateway rules.** Tools default to blocked. Unknown or changed tools are blocked until classified. `settings` and `payment` classes are always refused. Every non-read call and every refusal is audited with a hash of its args, and the results come back as untrusted text.
+- **`/mcp status`** shows each service's state, tool counts, restarts and calls in 24 hours (approver role, settings channel).
+- **New settings.** `mcp.enabled` is the kill switch (default `on`). `mcp.calls_per_min`, `mcp.writes_per_min` and `mcp.calls_per_day` set the rate limits.
+- **Install.** `scripts/mcp-install.sh` installs the pinned servers and checks each download against its sha256 pin.
+- **Migration 0005.** Adds the `mcp_irreversible` approval kind and the `mcp` audit scope.
+- **Docs.** Owner setup in `docs/helper/setup.md` §10, MCP sections in `docs/helper/local-dev.md` and `docs/development/architecture.md` §10.
+- **Status.**
+  - Security Gate 1 and Gate 2 were both conditionally approved, and the Gate 2 code findings are fixed.
+  - MCP ships **disabled in practice**: every tool hash is PENDING, so nothing can be called until the owner installs the servers, fills the hashes and adds tokens.
+  - Enabling MCP on production also needs the hashed lock regenerated (G2T040-03).
 
 ## 0.3.2
 - **Budget price table.** It now uses verified prices instead of placeholders:

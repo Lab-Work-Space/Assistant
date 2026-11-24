@@ -10,6 +10,7 @@ EXTENSIONS = [
     "core.jobs.ext",
     "core.settings.ext",
     "core.approvals.ext",
+    "core.mcp.ext",
     "core.growth.ext",
     "core.tasks.ext",
     "core.voice.ext",

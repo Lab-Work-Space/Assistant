@@ -6,7 +6,7 @@
 
 **20 AI teammates** · each one its own bot · real roles, real departments, real approvals
 
-![version](https://img.shields.io/badge/version-0.2.0--rc-blue)
+![version](https://img.shields.io/badge/version-0.4.0-blue)
 ![python](https://img.shields.io/badge/python-3.12+-3776AB?logo=python&logoColor=white)
 ![discord](https://img.shields.io/badge/Discord-py--cord-5865F2?logo=discord&logoColor=white)
 ![models](https://img.shields.io/badge/models-Claude%20%2B%20Gemini-D97757)
@@ -36,6 +36,7 @@
 | ✅ | **Nothing risky happens without approval.** Small decisions go to the department's AI head. Big ones go to humans. |
 | ⌨️ | **It feels natural.** You see "*is typing…*", then one finished reply. |
 | 📟 | **Logs stay quiet and tidy.** Only the System bot posts in `#bot-log`, and only warnings and errors. |
+| 🔌 | **Company tools (Phase 2A).** Praw and department heads can work in ClickUp, GitHub, Google Calendar, Drive, Docs and Sheets, and Hostinger, through one policy gateway. Irreversible actions wait for a human. |
 
 ### How a request flows
 
@@ -166,6 +167,7 @@ Approvals   APR-FIN-0007          APR-HQ-0001
 | `/lesson list [target]` · `show` · `delete` | Growth: review learned lessons (`code`, optional `reason`). AI-Admin only, in ⚙️ setting |
 | `/overlay history` · `rollback` | Growth: list prompt-overlay versions, or activate an older one (`version` 0 = empty). AI-Admin only, in ⚙️ setting |
 | `/hire` · `/fire` · `/move` · `/dept add` | Growth: hire or disable a persona, move it (`head:true` makes it head), add a department. AI-Admin only, in ⚙️ setting |
+| `/mcp status` | Company tools: each service's state, tool counts, restarts and calls in 24 h. Approver role, in ⚙️ setting |
 | `/voice …` | Voice features. Off by default |
 
 > 💡 `.env.local` holds the fixed values. `/setting` holds the values you tune from Discord.
@@ -248,9 +250,11 @@ docs/        📖 PRD · specs · security reviews · guides
 
 - ✅ **v0.1, Core.** Engine, tools, knowledge, budgets, CLI
 - 🔄 **v0.2, Discord.** 20 bots, System log bot, coded tasks and approvals, ⚙️ setting, typing indicator *(live testing)*
-- 🏗️ **v0.3, Growth.** Built in code (Gate 1 conditional approval; spec `docs/specs/2026-11-24-growth-spec.md`). Two parts:
+- 🏗️ **v0.3, Growth.** Released v0.3.0–v0.3.2 (Gate 2 PASS; spec `docs/specs/2026-11-24-growth-spec.md`). Two parts:
   - 📈 **The team learns from its work.** Reviewed lessons go into a secondary prompt that is versioned and can be rolled back. AI **never** edits a main prompt.
   - 🏗️ **The company can grow.** Use `/hire`, `/fire`, `/move` and `/dept add` from ⚙️ setting.
+- 🔌 **v0.4, Company tools (Phase 2A).** Built in code (Gate 1 conditional approval; Gate 2 pending). Praw and heads use ClickUp, GitHub, Google Workspace and Hostinger through one policy gateway. Irreversible actions need a human. Owner setup: [setup.md §10](docs/helper/setup.md#10-company-tools-phase-2a-mcp).
+- 🔜 **Next, Phase 2B.** Agents build their own tools, MCP servers, skills and plugins. Each one stays off until a human approves it.
 
 ---
 

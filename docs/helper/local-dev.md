@@ -13,6 +13,10 @@ Run the agents from a terminal (the CLI, no Discord), or run the Discord bot on 
   - [Slash commands and System log bot](#slash-commands-and-system-log-bot)
   - [Logs](#logs)
   - [Troubleshooting](#troubleshooting)
+- [Company tools (MCP) on the Mac](#company-tools-mcp-on-the-mac)
+  - [Run with MCP](#run-with-mcp)
+  - [Proxy](#proxy)
+  - [Fake server and tests](#fake-server-and-tests)
 
 ## Prerequisites
 - `.venv` in the repo root with the project installed (`python3 -m venv .venv && .venv/bin/pip install -e .`).
@@ -72,3 +76,25 @@ Needs the owner setup in [discord-apps.md](discord-apps.md) first. The script is
 - Startup refusals print a code only (for example `allowlist_empty`, `channel_not_allowlisted`, `allowlist_unresolved`, `app_id_mismatch:<persona>`, `token_shared`, `use_per_persona_tokens`, `cli_flag_in_discord_mode`, `settings_channel_invalid`, `admin_channel_shared`).
 - `/setting` replies "not configured" while `SETTINGS_CHANNEL_ID` is unset.
 - An Anthropic error "must include the anthropic-workspace-id header" means the key is not workspace-scoped. Replace it with a workspace key (`sk-ant-api03-...`).
+
+## Company tools (MCP) on the Mac
+Owner setup (installing the pinned servers, token names, hashes, scopes, kill switch and rate limits) is in [setup.md §10](setup.md#10-company-tools-phase-2a-mcp). This section covers running it on the Mac.
+
+### Run with MCP
+- Install the servers once with `scripts/mcp-install.sh`, and put the `MCP_*` names in `.env.local`.
+- The servers start with the bot (`scripts/dev-discord.sh`). There is no flag: `mcp.enabled` (default `on`) is the switch. A server without its names shows `not_configured` in `/mcp status`.
+
+### Proxy
+- Each server gets a fresh environment (`core/mcp/host.py`, `prepare`): `PATH`, `HOME`, `SHELL`, `LANG`, `USER`, `LOGNAME`, its fixed values and its own `MCP_*` names. Proxy variables from your shell are not passed to the servers, and the host has no setting to pass them on.
+- The ClickUp scope lookup (`core/mcp/scope.py`) runs in the bot process with `urllib`, so it follows the shell's proxy settings.
+- The team's test reports run pytest with `no_proxy='*'` (see [the growth test report](../test-reports/2026-11-24-task033-growth.md)). Do the same for the MCP tests.
+
+### Fake server and tests
+- `tests/fixtures/fake_mcp_server.py` is a FastMCP stdio server. Usage: `fake_mcp_server.py --log FILE [--variant extra|desc|schema]`. Each received call is appended to `FILE` as one JSON line `{tool, args, env_keys}`.
+- The MCP tests use the fake server, so they need no network and no tokens:
+
+```sh
+no_proxy='*' PYTHONPATH=. .venv/bin/pytest -q tests/test_mcp_*.py tests/test_migration_0005.py
+```
+
+- The test files are `tests/test_mcp_policy.py`, `test_mcp_host.py`, `test_mcp_gateway.py`, `test_mcp_replay.py`, `test_mcp_commands.py`, `test_mcp_configs.py`, `test_mcp_masking.py` and `test_mcp_settings.py`.

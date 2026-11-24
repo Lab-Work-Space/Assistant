@@ -1,7 +1,7 @@
 ---
 title: "Setup — environment names, local CLI and native VPS deploy"
 doc_id: "DOC-HLP-001"
-version: 2.1.0
+version: 2.2.0
 status: "Draft"
 last_updated: 2026-11-24
 author: DevOps Agent
@@ -12,26 +12,35 @@ referenced_plan: "docs/plans/2026-11-23-phase1-plan.md"
 
 ## Contents
 
-- 1. Before you start — L40
-- 2. Secrets (environment only) — L46
-- 3. Process-only flag (CLI dev mode) — L58
-- 4. Required configuration (spec §5.7) — L71
-- 4.1 Runtime settings (TASK-031) — L100
-- 4.2 Reply streaming (STREAM_MODE) — L121
-- 5. Retention settings (spec §10.0) — L124
-- 6. Startup checks you will hit — L131
-  - 6.1 Live-test fixes you may hit (TASK-033 era) — L142
-- 7. Local run (CLI) — L145
-- 8. Native VPS deploy (spec §11.11, §11.18) — L161
-  - 8.1 Accounts (owner checklist, spec §11.18.2) — L165
-  - 8.2 Deploy or upgrade — L187
-  - 8.3 Editing the env file — L202
-  - 8.4 Weekly dependency scan (dev account) — L218
-  - 8.5 Restore a backup (spec §11.18.3) — L230
-  - 8.6 Restore the knowledge directory (spec §11.19.9) — L248
-  - 8.7 Restoring a Hostinger backup (spec §11.19.10) — L264
-- 9. Checks for a new environment — L274
-- 10. Related documents — L280
+- 1. Before you start — L49
+- 2. Secrets (environment only) — L55
+- 3. Process-only flag (CLI dev mode) — L67
+- 4. Required configuration (spec §5.7) — L80
+- 4.1 Runtime settings (TASK-031) — L109
+- 4.2 Reply streaming (STREAM_MODE) — L130
+- 5. Retention settings (spec §10.0) — L133
+- 6. Startup checks you will hit — L140
+  - 6.1 Live-test fixes you may hit (TASK-033 era) — L151
+- 7. Local run (CLI) — L154
+- 8. Native VPS deploy (spec §11.11, §11.18) — L170
+  - 8.1 Accounts (owner checklist, spec §11.18.2) — L174
+  - 8.2 Deploy or upgrade — L196
+  - 8.3 Editing the env file — L211
+  - 8.4 Weekly dependency scan (dev account) — L227
+  - 8.5 Restore a backup (spec §11.18.3) — L239
+  - 8.6 Restore the knowledge directory (spec §11.19.9) — L257
+  - 8.7 Restoring a Hostinger backup (spec §11.19.10) — L273
+- 9. Checks for a new environment — L283
+- 10. Company tools (Phase 2A, MCP) — L289
+  - 10.1 Install the pinned servers — L293
+  - 10.2 Env names (names only) — L307
+  - 10.3 Least privilege per service — L320
+  - 10.4 Google login (one time) — L327
+  - 10.5 Fill tool hashes into policy.toml — L336
+  - 10.6 Department scopes (`mcp/access.toml`, OWN-05) — L347
+  - 10.7 Status and kill switch — L356
+  - 10.8 Rate limits — L361
+- 11. Related documents — L374
 
 > Status (v0.2.0 release candidate): the owner pivoted to SQLite and a native systemd service on the Hostinger VPS (spec §11, `docs/specs/2026-11-23-phase1-spec-s11-sqlite-vps.md`). There is no Docker, Compose or Postgres. Deploy files live in `deploy/`. The Discord layer (one client per persona, System log bot, approvals routing) is built in code. It is not live on the VPS; the service is enabled only at B1-ENABLE.
 
@@ -277,7 +286,92 @@ runuser -u employee -- sh -c 'umask 077; date -u +%Y-%m-%dT%H:%M:%S.000Z > /var/
 - `.env.local` is ignored by git (`tests/test_ignore_files.py`) and no `.env*` file exists under `/opt/employee` (spec §11.18.10).
 - Discord tokens are only `DISCORD_BOT_TOKEN_<ID>`, one per persona with its `DISCORD_APP_ID_<ID>`. The plain `DISCORD_BOT_TOKEN` is refused (`use_per_persona_tokens`, spec §12.10). Any other spelling is a defect.
 
-## 10. Related documents
+## 10. Company tools (Phase 2A, MCP)
+
+Phase 2A connects ClickUp, GitHub, Google Workspace (Calendar, Drive, Docs, Sheets; no Gmail) and Hostinger through the MCP policy gateway. This section names env variables only. The owner enters every token in `.env.local` (mode 0600). Never paste a token into the repo, a ticket or chat. Owner tasks OWN-01 to OWN-06 are in `docs/plans/2026-11-24-phase2a-plan.md`. The Gate 1 conditions (G040-01 to G040-14) are in `docs/specs/2026-11-24-phase2a-integrations-spec.md`; Gate 2 must pass before release.
+
+### 10.1 Install the pinned servers
+
+Run from the repo root:
+
+```sh
+scripts/mcp-install.sh                 # all four services
+scripts/mcp-install.sh github clickup  # or any of: github clickup google hostinger
+```
+
+- Needs Python 3.11 or newer (set `PYTHON=/path/to/python3.11` to choose one), `curl`, and `npm` for ClickUp and Hostinger.
+- GitHub's release tarball must match the sha256 pinned in `mcp/github/server.toml`; a mismatch aborts. ClickUp and Hostinger install with `npm ci --ignore-scripts` from their lockfiles, which must match the pinned integrity. Google installs with pip from `requirements.lock`, hash-checked. The script never uses npx, uvx or `@latest`, and installs nothing globally.
+- GitHub: if `gh` is installed, the release attestation is verified. If not, the script prints that the attestation was NOT verified, and Gate 2 must verify it.
+- Installs go into `mcp/<svc>/` (`bin/`, `node_modules/`, `.venv/`). Run the script again after any pin change.
+
+### 10.2 Env names (names only)
+
+| Service | Env names in `.env.local` | Note |
+| :--- | :--- | :--- |
+| GitHub | `MCP_GITHUB_TOKEN` | Fine-grained PAT, see 10.3 |
+| ClickUp | `MCP_CLICKUP_API_KEY`, `MCP_CLICKUP_TEAM_ID` | API key and team id |
+| Google | `MCP_GOOGLE_OAUTH_CLIENT_ID`, `MCP_GOOGLE_OAUTH_CLIENT_SECRET`, `MCP_GOOGLE_USER_EMAIL` | OAuth client, and the dedicated AI account's email |
+| Hostinger | `MCP_HOSTINGER_API_TOKEN` | VPS token, see 10.3 |
+
+- The fixed values in each `server.toml` (`GITHUB_TOOLSETS`, `CLICKUP_MCP_MODE`, and the Google paths) are not env names to fill in.
+- A server with a missing name is `not_configured`. The bot still starts.
+- Each server gets a fresh environment: `PATH`, `HOME`, `SHELL`, `LANG`, `USER`, `LOGNAME`, its fixed values and its own names only.
+
+### 10.3 Least privilege per service
+
+- **GitHub (OWN-01, OQ-1).** Fine-grained PAT with the company organisation as resource owner only, and an expiry of 90 days or less. Grant Contents, Issues and Pull requests read and write, Administration read and write, Actions read, and Metadata read. Do not grant Workflows, Secrets, Webhooks, Members or organisation admin. OQ-1 overrides the "no admin" wording of OWN-01. The central account is an organisation member, never an owner. Repo settings stay `settings` and the gateway refuses them. The server starts with `--lockdown-mode`. If the installed binary rejects that flag, the host marks GitHub `not_configured`.
+- **ClickUp (OWN-02, OQ-4).** The central user must be a Member, not Admin or Owner, because the token inherits the user's role. Invite that user only to the agreed spaces. The chosen server has no delete tools for now.
+- **Google (OWN-03, OQ-2, D7).** One dedicated Google account for the AI, with 2-step verification on and no admin role. Share only the agreed Drive folders and the agreed calendars with that account. Consent covers Calendar, Drive, Docs and Sheets only, plus openid and email. Gmail is not in scope.
+- **Hostinger (OWN-04, OQ-3).** VPS only. Create the token with the smallest scope the panel offers, and note whether billing can be excluded. If it cannot, the gateway's `payment` class is the only block. Never set `API_BASE_URL` or `API_HEADERS`; the host refuses both.
+
+### 10.4 Google login (one time)
+
+```sh
+.venv/bin/python -m core.mcp google-auth
+```
+
+- The command runs the Google server's login with the same environment the host uses. Sign in with the dedicated AI account and approve the consent screen.
+- Tokens are stored in `<data_dir>/mcp/google/credentials`. `<data_dir>` is the folder that holds `DATABASE_PATH`, or `data/` in the repo when it is unset. The command sets the directory to 0700 and each file to 0600. The host refuses to start Google when the owner or the permissions are wrong (`creds_perms`).
+
+### 10.5 Fill tool hashes into policy.toml
+
+Each `mcp/<svc>/policy.toml` gives every tool a class and a `tool_sha256`. An empty hash keeps the tool blocked.
+
+1. Run `.venv/bin/python -m core.mcp dump <svc>` for one of `github`, `clickup`, `google` or `hostinger`. The server must be installed (10.1) and its names set (10.2). The output has one line per live tool: the server's tool name, the registered name (`mcp_<svc>_<name>`) and the sha256. It prints names and hashes only.
+2. Review the tool's class in `policy.toml`. Then copy the sha256 into that tool's `tool_sha256`. Do not add new tool entries: a tool missing from the file stays blocked.
+3. Restart the bot. Policies load at startup.
+4. Check the result with `/mcp status`.
+
+A tool whose schema or description changes after a server update becomes `changed` and stays blocked until its hash is updated again. The host logs `mcp.tool_changed` and `mcp.tool_unclassified`, and System forwards them to `#bot-log`.
+
+### 10.6 Department scopes (`mcp/access.toml`, OWN-05)
+
+- `[services.<svc>] depts` lists the department codes whose head may use that service. Starting map: GitHub DEV and PRD; Hostinger IT; ClickUp and Google all 13 departments in the file.
+- A head is allowed only while the setting `approval.head.<code>` names that persona, so `/move`, `/fire` and `/hire` change access. Praw is allowed by id. Team members have no direct access.
+- `[scopes.<CODE>]` lists the write targets: `github_repos` (`owner/repo-glob`, owner literal, glob without `/`, for example `acme/dev-*`), `clickup_spaces`, `google_calendars` (never `primary`), `google_folders` and `hostinger_vms` (digits). An empty list means no write for that head on that service.
+- Reads are company-wide. Scope limits only writes and deletes. Praw is not scope-checked.
+- `github_default_owner` is the owner used for repo create and fork. Empty means heads cannot create or fork repos.
+- Every scope list is empty today, so heads have no writes until OWN-05 is filled in.
+
+### 10.7 Status and kill switch
+
+- `/mcp status` (settings channel, approver role) prints one line per service: state, active and blocked tools, restarts, calls in the last 24 h, and unclassified tool names. It never prints env values, tokens or args. States: `running`, `starting`, `down`, `stopped`, `disabled`, `not_configured`.
+- Kill switch: `/setting set mcp.enabled off` (settings channel). Every MCP call is then refused with `mcp_disabled`, and approved calls are refused at replay. Turn it back on with `on`. The default is `on`.
+
+### 10.8 Rate limits
+
+| Setting | Default | Range | Counts |
+| :--- | :--- | :--- | :--- |
+| `mcp.calls_per_min` | 20 | 1 to 120 | calls per persona per service, per minute |
+| `mcp.writes_per_min` | 6 | 1 to 60 | write and delete calls per persona per service, per minute |
+| `mcp.calls_per_day` | 500 | 10 to 5000 | calls per persona, over the last 24 h |
+
+- Set them in the settings channel, for example `/setting set mcp.calls_per_min 30`.
+- Per server, `rate_per_min` in `mcp/<svc>/server.toml` caps all personas together: GitHub 60, ClickUp 30, Google 60, Hostinger 20.
+- Fixed in code, not a setting: 40 calls per agent run. Refused attempts count toward every limit.
+- After a `rate_limited` refusal, further refusals for that persona within the same minute are logged but not audited.
+
+## 11. Related documents
 
 - Architecture: `docs/development/architecture.md`
 - Persona format: `docs/development/persona-format.md`

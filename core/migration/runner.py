@@ -28,14 +28,24 @@ def migrate(path: str, versions_dir: Path = VERSIONS_DIR) -> int:
             n = int(VERSION_RE.match(f.name).group(1))
             if n <= cur:
                 continue
-            script = (f"BEGIN IMMEDIATE;\n{f.read_text()}\n"
-                      f"INSERT INTO schema_version (version, name) VALUES ({n}, '{f.stem}');\nCOMMIT;")
+            body = f.read_text()
+            fk_off = body.startswith("-- migrate: foreign_keys=off")
+            script = (f"BEGIN IMMEDIATE;\n{body}\n"
+                      f"INSERT INTO schema_version (version, name) VALUES ({n}, '{f.stem}');\n")
             try:
+                if fk_off:
+                    conn.execute("PRAGMA foreign_keys=OFF")  # must run outside a transaction (SQLite 12-step ALTER procedure)
                 conn.executescript(script)
+                if fk_off and conn.execute("PRAGMA foreign_key_check").fetchall():
+                    raise sqlite3.IntegrityError("foreign_key_check")
+                conn.execute("COMMIT")
             except sqlite3.Error:
                 if conn.in_transaction:
                     conn.execute("ROLLBACK")
                 raise DbError(f"migration_failed:{n:04d}") from None
+            finally:
+                if fk_off:
+                    conn.execute("PRAGMA foreign_keys=ON")
         return head
     finally:
         conn.close()

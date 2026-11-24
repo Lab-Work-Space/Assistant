@@ -1,7 +1,7 @@
 ---
 title: "Architecture — AI Team on Discord (Phase 1)"
 doc_id: "DOC-ARCH-001"
-version: 1.1.0
+version: 1.2.0
 status: "Draft"
 last_updated: 2026-11-24
 author: Document Writer Agent
@@ -12,19 +12,29 @@ referenced_plan: "docs/plans/2026-11-23-phase1-plan.md"
 
 ## Contents
 
-- 1. Summary — L29
-- 2. Delivery in two slices — L40
-- 3. Components and flow — L53
-- 4. Interfaces — L96
-- 5. Security posture (summary) — L109
-- 6. Phase 2 and out of scope — L126
-- 7. Open items — L131
-- 8. Decisions — L140
-- 9. Growth module (v0.3.0) — L155
-- 10. Folder map — L211
-- 11. Related documents — L230
+- 1. Summary — L39
+- 2. Delivery in two slices — L50
+- 3. Components and flow — L63
+- 4. Interfaces — L106
+- 5. Security posture (summary) — L119
+- 6. Phase 2 and out of scope — L136
+- 7. Open items — L142
+- 8. Decisions — L152
+- 9. Growth module (v0.3.0) — L170
+- 10. MCP gateway (Phase 2A, v0.4.0) — L226
+  - 10.1 Components — L230
+  - 10.2 Decision order — L245
+  - 10.3 Tool classes — L260
+  - 10.4 Approvals for irreversible calls — L268
+  - 10.5 Tool exposure (R-CTX) — L277
+  - 10.6 Audit and logs — L284
+  - 10.7 Attribution and results — L292
+  - 10.8 Host lifecycle — L300
+  - 10.9 Known limits — L310
+- 11. Folder map — L317
+- 12. Related documents — L337
 
-> Status (2026-11-24, v0.2.0 release candidate): Slice A is built on the owner pivot (spec §11): one **SQLite** file at `DATABASE_PATH`, **native systemd** units on a Hostinger VPS, **no Docker, no Compose, no Postgres**. Slice B (Discord clients, reply gate, approvals routing, System log bot, `core/__main__.py`) is built in code; it is not enabled on the VPS until B1-ENABLE. Growth (v0.3.0, section 9) is built in code, with Gate 1 conditional approval. Section 10 lists what exists.
+> Status (2026-11-24, v0.2.0 release candidate): Slice A is built on the owner pivot (spec §11): one **SQLite** file at `DATABASE_PATH`, **native systemd** units on a Hostinger VPS, **no Docker, no Compose, no Postgres**. Slice B (Discord clients, reply gate, approvals routing, System log bot, `core/__main__.py`) is built in code; it is not enabled on the VPS until B1-ENABLE. Growth (v0.3.0, section 9) is built in code, with Gate 1 conditional approval. Phase 2A (MCP gateway, v0.4.0, section 10) is built in code; Gate 2 is pending. Section 11 lists what exists.
 
 ## 1. Summary
 
@@ -125,7 +135,8 @@ Full controls and conditions: spec §6, §10 and §11; the Gate reports listed i
 
 ## 6. Phase 2 and out of scope
 
-- Phase 2 (planned): agents build tools, MCP servers, plugins and skills; the Agent SDK worker and Docker sandbox arrive here. Phase 1 ships no MCP (PRD §7). Phase 2 is the only place where a container sandbox is planned.
+- Phase 2A (built in code, v0.4.0, section 10): company tools (ClickUp, GitHub, Google Workspace, Hostinger) through pinned MCP servers behind our policy gateway. Spec: `docs/specs/2026-11-24-phase2a-integrations-spec.md`.
+- Phase 2B (planned): agents build tools, MCP servers, plugins and skills; the Agent SDK worker and Docker sandbox arrive here. Phase 1 ships no MCP (PRD §7). The 2A design names an OS sandbox for 2B; reconcile in the 2B design. Phase 2 is the only place where a container sandbox is planned.
 - Phase 1 acceptance does not include phase-2 items (PRD §8).
 
 ## 7. Open items
@@ -134,6 +145,7 @@ Full controls and conditions: spec §6, §10 and §11; the Gate reports listed i
 - Slice B: the ffmpeg carve-out in spec §10.6.4 must be resolved by the sa role before TASK-016 (spec §10.17).
 - Slice B: Discord setup readiness is the owner's decision (plan, Slice B).
 - Growth (v0.3.x): Security Gate 2 passed after re-check (`docs/security/2026-11-24-gate2-task033.md`); open follow-ups are residual G1 prefixed keyword forms (accepted risk) and VPS deploy (final phase).
+- MCP (v0.4.0, Phase 2A): Gate 2 pending. Owner tokens (OWN-01 to OWN-06) and department write scopes (OWN-05; every list is empty today) are not set. Live smoke tests TASK-040-13 to -16 wait for them.
 - Off-host backup: none in Slice A (spec §11 OQ-3). Local backups do not survive loss of the disk.
 - Spec §7 defaults (defaults stated for owner awareness, changeable without schema change): late-joiner DM failure is never captured; an agent can start recording only when the requester is in that voice channel; budget is per agent; a plain human message in an open task thread is treated as addressed to the assignee; spoken commands are not in phase 1.
 
@@ -151,6 +163,9 @@ Full controls and conditions: spec §6, §10 and §11; the Gate reports listed i
 | Growth learning | Reviewed lessons go into a versioned secondary overlay, rendered at run time. The AI never edits `prompts/**` | Growth spec §0, §1, §9 |
 | Growth staffing | Hired personas are `personas_runtime` rows that speak via Praw until their own token is set; fired is a soft disable | Growth spec §0 OQ-1, OQ-2, §F |
 | Growth cost | `growth.lessons_per_day` is seeded at 3 (not 6); 0 turns learning off | Growth spec §0 OQ-4 |
+| Company tools | Approach A: existing MCP servers (GitHub, ClickUp, Google Workspace, Hostinger), pinned and run as stdio children behind our gateway | Phase 2A design D6, §4 |
+| GitHub token shape | Fine-grained PAT, organisation only, Administration RW granted; no Workflows, Secrets, Webhooks or Members | Phase 2A spec OQ-1, G040-03 |
+| Irreversible MCP calls | Approval kind `mcp_irreversible`, routed to HQ humans; replayed once with the exact approved args | Phase 2A design §5.1; `Router.route` (`kind_dangerous`) |
 
 ## 9. Growth module (v0.3.0)
 
@@ -208,14 +223,106 @@ The mermaid above matches `build_system` in `core/agents/prompt_builder.py` and 
 - `core/migration/versions/0004_growth.sql` (`growth`) creates `lessons`, `overlay_versions`, `overlay_active`, `departments` and `personas_runtime`. It rebuilds `audit_log` and `code_counters` to widen their CHECK lists. `personas_runtime` rejects reserved ids by CHECK (G033-12).
 - It runs at the next start, after the service is stopped (see [setup.md](../helper/setup.md#41-runtime-settings-task-031)).
 
-## 10. Folder map
+## 10. MCP gateway (Phase 2A, v0.4.0)
+
+Source: `docs/specs/2026-11-24-phase2a-integrations-spec.md` (owner answers OQ-1 to OQ-8, Gate 1 conditions G040-01 to G040-14) and `docs/specs/2026-11-24-phase2a-integrations-design.md`. Gate 1 verdict: `docs/security/2026-11-24-gate1-task040.md` (CONDITIONAL_APPROVE). Gate 2 is pending. Each service runs as one stdio child of the bot process. Agents reach it only through the gateway.
+
+### 10.1 Components
+
+| Module | Role |
+| :--- | :--- |
+| `core/mcp/host.py` | `McpHost`: starts one child per service through the `mcp` SDK, compares the live tool list with the policy, health checks, restart backoff, call timeout and output cap. `load_server` and `prepare` build the config and the child env |
+| `core/mcp/policy.py` | `load_policy` and `load_access`; `classify`; `effective_args` (forced fields, attribution); `tool_sha256`; `registered_name` (`mcp_<svc>_<name>`) |
+| `core/mcp/gateway.py` | `Gateway`: `handle` (the decision order), `offer`, `initial` and `use` (R-CTX), `_request` (approval card), `role_ok`, rate limits, `_audit` |
+| `core/mcp/scope.py` | `Scope.check`: per-department write scopes; ClickUp id lookups use `CLICKUP_BASE`, and redirects are refused |
+| `core/mcp/replay.py` | approved calls: claim, re-check, call, report; startup recovery |
+| `core/mcp/ext.py` | wiring at start: builds the host and gateway, registers `mcp_use` and the `mcp_irreversible` handler. Any failure leaves MCP off |
+| `core/mcp/__main__.py` | `python -m core.mcp dump <svc>` and `google-auth` |
+| `core/discord/mcp_commands.py` | `/mcp status` |
+| `mcp/<svc>/server.toml`, `policy.toml`, `mcp/access.toml` | pin, launch command, env names (names only), tool classes, department scopes |
+| `scripts/mcp-install.sh` | installs the pinned servers, checked against the sha256 in `server.toml` |
+
+### 10.2 Decision order
+
+`Gateway.handle` runs these steps in this order. The step names are the ones in its docstring.
+
+0. Per-run cap (`RUN_CAP` = 40 calls) and the per-minute window per persona and service (`mcp.calls_per_min`). Over the limit: `rate_limited`. Every attempt counts, refusals included. This runs before step 1.
+1. **Enabled:** `mcp.enabled` off gives `mcp_disabled`.
+2. **Host:** a state other than `running` gives `service_unavailable`.
+3. **Role:** a disabled persona is refused. Praw is allowed by id. Any other persona must be the current `approval.head.<code>` of a department listed for the service. Otherwise `not_allowed`.
+4. **Tool state:** the tool must be `active` in the policy. Otherwise `tool_blocked`.
+5. **Effective args:** forced fields are applied first (`$access:` and `$env:` values resolved at call time), then attribution. An unresolved force gives `tool_blocked`; a bad attribution field gives `invalid_args`.
+6. **Id check and classify:** `classify` runs the id checks (`invalid_id`), the dispatch map, the raise-only rules and the Hostinger `params` check. A class of `settings`, `payment` or `blocked` is refused as `class_<cls>` and logged at WARNING.
+7. **Scope:** for a persona that is not Praw and a call that is not `read`, `Scope.check` runs. A failure refuses with its own code.
+8. **Rate:** `rate_per_min` for the service, `mcp.writes_per_min` for write and delete classes, and `mcp.calls_per_day`. Over any limit: `rate_limited`.
+9. **Approval or call:** `irreversible` creates a card (10.4). Any other class calls the host, logs, and audits every class except `read`. The result is returned with its prefix (10.7).
+
+### 10.3 Tool classes
+
+`CLASSES` in `core/mcp/policy.py`: `read`, `write`, `delete_recoverable`, `irreversible`, `settings`, `payment`, `blocked`.
+
+- `read`, `write` and `delete_recoverable` run. `irreversible` needs approval. `settings`, `payment` and `blocked` are always refused.
+- Default deny: a tool missing from `policy.toml`, with an empty hash, or whose schema or description changed, is not `active` and is refused.
+- A class can depend on the arguments: a dispatch field picks the class, and rules can only raise it. If a dispatch value cannot be read, the tool is `blocked`.
+
+### 10.4 Approvals for irreversible calls
+
+- The card has kind `mcp_irreversible` and title `<persona>: <svc>.<tool>`. Its summary shows the service, tool, persona, the first 16 hex of the args SHA-256, and the exact args as JSON.
+- Refused before any card: canonical args over 3000 characters (`args_too_large_for_approval`), args that masking would change (`args_unreviewable`), or a summary over 3900 characters.
+- Routing: every kind except `generic` goes to HQ (`Router.route`, reason `kind_dangerous`). Humans with the AI-Admin role decide. The `approvals` CHECK allows the new kind (migration 0005).
+- Replay (`core/mcp/replay.py`): the handler claims the row once (state `claimed`, decided less than 15 minutes earlier). It re-checks, then calls with the stored args only. It writes the state (`done`, `failed:<code>`, `refused_at_replay:<reason>` or `unknown`), writes a `replay` audit row, and wakes the persona with the result.
+- Re-checks: kill switch, persona id and disabled flag, args SHA-256, role, host state, tool active with an unchanged `tool_sha256`, class still `irreversible` with unchanged args, and scope.
+- Startup recovery: a row stuck in `claimed` becomes `unknown` (logged as ERROR, never re-run). An approved row not claimed within 15 minutes becomes `stale`.
+
+### 10.5 Tool exposure (R-CTX)
+
+- `mcp_use(service)` is a static, override-only tool (`Gateway.use_spec`). Its enum is the four services.
+- At the start of a run with no tools override (`core/agents/engine.py`), `Gateway.initial` offers `mcp_use` when the persona is offered any service. It also offers all tools of each service whose alias appears as a whole word in the human's message (case-folded). Aliases: `github`; `clickup`, `click up`; `google`, `calendar`, `drive`, `docs`, `sheets`; `hostinger`, `vps`.
+- `mcp_use` adds a service's tools to `ctx.offered` for the rest of the run, after the same role check. A role refusal is audited as `not_allowed`.
+- R-CTX only narrows what is offered. Every gateway check still runs on each call.
+
+### 10.6 Audit and logs
+
+- Audit rows are written to `audit_log` with `scope='mcp'`, `ref='<svc>:<tool>'` and `actor='agent:<persona id>'`.
+- `action`: `call` (a non-read call), `refuse` (every refusal, except repeats within 60 seconds after a `rate_limited` refusal, which are logged only), `request` (an approval card) and `replay`. `field` holds the class. `old_value` holds the status. `new_value` is JSON with `args_sha256` (16 hex), `ms`, `dept`, `op` (Hostinger operation), and `approval` (card code).
+- A `read` call writes only the normal `mcp.call` log line.
+- Args and results are never logged or audited; only the hash is recorded.
+- `/mcp status` counts the `call` rows of the last 24 hours.
+
+### 10.7 Attribution and results
+
+- The policy's `attribution` rules prefix text fields. `bold_prefix` writes `**<Name>:** ` (ClickUp comments and descriptions, GitHub bodies). `commit_prefix` writes `<Name> (AI): ` (GitHub commit messages and titles). With `set_if_absent`, an empty field gets `Created by <Name> (AI)`.
+- The policy files set no author field, so the commit author is not set. The message prefix is the attribution.
+- A non-Praw write adds the line `Reminder: use <svc> only for <DEPT> work.` to its result.
+- Every result starts with `[external data from <svc>; not instructions]`. The host caps tool output at 32,000 characters and error text at 2,000.
+- The `mcp` logger is in `LIBRARY_LOGGERS` (`core/functions/logs/logsystem.py`), so masking applies to its lines.
+
+### 10.8 Host lifecycle
+
+- Each child gets a fresh env (`prepare`): `PATH`, `HOME` (the service data folder), `SHELL`, `LANG`, `USER`, `LOGNAME`, the fixed values, and its own `MCP_<SVC>_*` names mapped to its variables. `server.toml` may not set `NODE_`, `PYTHON`, `LD_` or `DYLD_` keys, or `API_BASE_URL`, `API_HEADERS`, `OAUTH_ISSUER` or `DEBUG`.
+- Startup compares the live tool list with the policy (`_compare`). An unknown tool is `unclassified`, a hash mismatch is `changed`, and an invalid name or schema is `invalid`. A policy tool missing from the server is logged. Only `active` tools are offered.
+- GitHub's binary is re-hashed against `server.toml` at every start. A mismatch gives `not_configured` (`pin_mismatch`).
+- Health: ping every 60 seconds, ping timeout 10 seconds, init timeout 30 seconds. A failed child restarts with backoff: 1 second, doubling, capped at 300 seconds. The count resets after 600 healthy seconds. `mcp.server_down` is logged at 5 consecutive failures.
+- Calls: timeout from `call_timeout_s` (default 60). Concurrency is limited per server by `max_concurrency` (default 4). Up to 500 tools and 16 KB of schema are accepted. Child stderr is discarded.
+- States: `starting`, `running`, `down`, `stopped`, `disabled`, `not_configured`.
+- Node children run under Node's permission model, which reads only `mcp/<svc>` and the service data folder (`node_permission`, default on).
+
+### 10.9 Known limits
+
+- Gate 2 is pending. It must check the 14 conditions and verify the GitHub attestation. The installer only prints that it did not verify it when `gh` is missing.
+- The Hostinger token may not exclude billing. The gateway's `payment` class is then the only control (design §7).
+- Owner tokens and department scopes are not set (OWN-01 to OWN-06). Every scope list is empty, so heads have no writes.
+- Phase 2B is not started.
+
+## 11. Folder map
 
 | Folder | Status |
 | :--- | :--- |
 | `core/config.py`, `core/interfaces.py`, `core/extensions.py` | exist. `core/core.py` exists and is empty |
 | `core/db/` | exists: `sqlite.py` (connection, path checks, authorizer, `Database` API) and `backup.py` (backup and `restore` CLI) |
-| `core/migration/` | exists: `runner.py`, `__main__.py` (`python -m core.migration`), `versions/0001_phase1.sql` (schema 0001), `0002_approvals_routing.sql`, `0003_audit_decide.sql`, `0004_growth.sql`, `retention.py`, `retention_main.py`, tests |
+| `core/migration/` | exists: `runner.py`, `__main__.py` (`python -m core.migration`), `versions/0001_phase1.sql` (schema 0001), `0002_approvals_routing.sql`, `0003_audit_decide.sql`, `0004_growth.sql`, `0005_mcp.sql`, `retention.py`, `retention_main.py`, tests |
 | `core/growth/` | exists (v0.3.0): `ext.py`, `lessons.py`, `overlays.py`, `personas.py`, `g1.py`, `__init__.py`. Section 9 |
+| `core/mcp/`, `core/discord/mcp_commands.py`, `mcp/`, `scripts/mcp-install.sh` | exist (v0.4.0, Phase 2A): the gateway (`core/mcp/`), `/mcp status`, per-service configs `mcp/<svc>/` (`server.toml`, `policy.toml`), `mcp/access.toml` and the installer. Section 10 |
 | `core/cli/` | exists: `python -m core.cli` (harness, script mode) |
 | `core/functions/logs/` | exists: `logsystem.py` (JSON logger, `install_logging`) and `masking.py` |
 | `core/agents/`, `core/provider/`, `core/agent_tools/` | exist: persona loader, providers, built-in tools |
@@ -227,12 +334,15 @@ The mermaid above matches `build_system` in `core/agents/prompt_builder.py` and 
 | `knowledge/` | exists: 14 department areas plus `memory`, `notes`, `drafts`, `rules`, `meetings` and `_template/`, mostly empty. On the VPS `install.sh` seeds `/var/lib/employee/knowledge` from it |
 | `docs/` | exists; PRD, plan, specs, security reports, test reports, spike and index |
 
-## 11. Related documents
+## 12. Related documents
 
 - Setup, env names and VPS deploy: `docs/helper/setup.md`
 - Knowledge store format: `docs/development/knowledge-format.md`
 - Persona file format: `docs/development/persona-format.md`
 - Current stack and data rules: `docs/specs/2026-11-23-phase1-spec-s11-sqlite-vps.md`
+- Phase 2A spec (owner answers, Gate 1 conditions): `docs/specs/2026-11-24-phase2a-integrations-spec.md`
+- Phase 2A design: `docs/specs/2026-11-24-phase2a-integrations-design.md`
+- Security Gate 1, Phase 2A: `docs/security/2026-11-24-gate1-task040.md`
 - Growth (v0.3.0) spec and design: `docs/specs/2026-11-24-growth-spec.md`, `docs/specs/2026-11-24-growth-design.md`
 - Discord rollout (one app per persona, System bot): `docs/specs/2026-11-23-phase1-spec-s12-discord-rollout.md` §12.10, §12.14
 - Approvals routing: `docs/specs/2026-11-24-approvals-routing-spec.md`

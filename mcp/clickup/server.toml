@@ -1,0 +1,19 @@
+# ClickUp MCP server (@hauptsache.net/clickup-mcp, community, MIT), TASK-040 MCP-07. Env NAMES only.
+# The central ClickUp user must be a Member (not Admin/Owner): the token inherits its role (P-CUROLE).
+# Installed by scripts/mcp-install.sh with `npm ci --ignore-scripts` from package-lock.json; no npx at runtime.
+name = "clickup"
+enabled = true
+command = "node"
+args = ["node_modules/@hauptsache.net/clickup-mcp/dist/index.js"]
+call_timeout_s = 60
+rate_per_min = 30
+max_concurrency = 4
+
+[pin]
+version = "1.10.0"
+integrity = "sha512-vrbUrsN/e9qm5hiS/A50gMm8iB6bmKH97Rw+jv/uebq0Eact8gU7g9T4C5PiFXcDr3zzkqoGvwhp1qTJlpVnOA=="
+
+[env]
+CLICKUP_API_KEY = { from = "MCP_CLICKUP_API_KEY", secret = true }
+CLICKUP_TEAM_ID = { from = "MCP_CLICKUP_TEAM_ID", secret = true }
+CLICKUP_MCP_MODE = "write"

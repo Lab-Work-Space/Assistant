@@ -1,0 +1,8 @@
+{
+  "name": "employee-mcp-hostinger",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pinned Hostinger MCP server (bin hostinger-vps-mcp only) for the Employee gateway (TASK-040 MCP-07). Install with: npm ci --ignore-scripts",
+  "engines": { "node": ">=20" },
+  "dependencies": { "@hostinger/mcp": "4.20.1" }
+}

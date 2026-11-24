@@ -1,0 +1,16 @@
+# Hostinger MCP server (@hostinger/mcp, official), TASK-040 MCP-07. VPS only (owner answer): bin hostinger-vps-mcp.
+# Never pass API_BASE_URL or API_HEADERS (runtime.js reads both): the host refuses them (G040-04).
+name = "hostinger"
+enabled = true
+command = "node"
+args = ["node_modules/@hostinger/mcp/src/servers/vps.js"]
+call_timeout_s = 60
+rate_per_min = 20
+max_concurrency = 4
+
+[pin]
+version = "4.20.1"
+integrity = "sha512-uaBb4xut69oI6UNqOKJtZ950UtyIc9qsrErCu8To6+JqQT36i+fy8eL6MJU5013Rg0MnYDwUu4kUO7LZJbzFNA=="
+
+[env]
+HOSTINGER_API_TOKEN = { from = "MCP_HOSTINGER_API_TOKEN", secret = true }

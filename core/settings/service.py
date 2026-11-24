@@ -9,10 +9,11 @@ _SNOW = re.compile(r"^[0-9]{17,20}$")
 THRESHOLD_DEFAULT = 10_000
 _INTS = {"approval.hq_threshold_thb": (1, 100_000_000), "approval.ttl_h": (1, 168),
          "approval.rate_per_day": (1, 100), "approval.ai_daily_max": (0, 200),
-         "growth.lessons_per_day": (0, 50), "growth.overlay_max_chars": (500, 6000)}
+         "growth.lessons_per_day": (0, 50), "growth.overlay_max_chars": (500, 6000),
+         "mcp.calls_per_min": (1, 120), "mcp.writes_per_min": (1, 60), "mcp.calls_per_day": (10, 5000)}
 _CODES = tuple(DEPT_CODES[s].lower() for s in DEPT_SLUGS)
 # a list: register_dept extends it in place, so every importer sees new departments (TASK-033 R21)
-KEYS = [*_INTS, "approval.ai_enabled", *(f"approval.channel.{c}" for c in _CODES), *(f"approval.head.{c}" for c in _CODES)]
+KEYS = [*_INTS, "approval.ai_enabled", "mcp.enabled", *(f"approval.channel.{c}" for c in _CODES), *(f"approval.head.{c}" for c in _CODES)]
 
 
 def register_dept(slug: str, code: str) -> None:
@@ -51,6 +52,14 @@ class SettingsService:
             return "20"
         if key == "approval.ai_enabled":
             return "on"
+        if key == "mcp.enabled":
+            return "on"
+        if key == "mcp.calls_per_min":
+            return "20"
+        if key == "mcp.writes_per_min":
+            return "6"
+        if key == "mcp.calls_per_day":
+            return "500"
         if key == "growth.lessons_per_day":
             return "3"
         if key == "growth.overlay_max_chars":
@@ -80,6 +89,7 @@ class SettingsService:
     async def lessons_per_day(self) -> int: return await self._int("growth.lessons_per_day")
     async def overlay_max_chars(self) -> int: return await self._int("growth.overlay_max_chars")
     async def ai_enabled(self) -> bool: return await self.get("approval.ai_enabled") == "on"
+    async def mcp_enabled(self) -> bool: return await self.get("mcp.enabled") == "on"
 
     async def approval_channel(self, code: str) -> str:
         """'hq' or a snowflake text. Unknown code -> hq."""
@@ -116,7 +126,7 @@ class SettingsService:
             if not _INT.fullmatch(s) or not lo <= int(s) <= hi:
                 raise bad
             return str(int(s))
-        if key == "approval.ai_enabled":
+        if key in ("approval.ai_enabled", "mcp.enabled"):
             if raw.lower() not in ("on", "off"):
                 raise bad
             return raw.lower()

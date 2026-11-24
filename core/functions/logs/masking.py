@@ -47,6 +47,13 @@ _REGEXES = (
     (re.compile(r"(?im)^(\s*(?:x-api-key|x-goog-api-key|authorization)\s*[:=]\s*)\S.*$"), r"\1***"),
     (re.compile(r"ya29\.[\w-]+"), "***"),
     (re.compile(r"/webhooks/\d+/[\w-]{60,}"), "/webhooks/***"),
+    # TASK-040 MCP tokens (spec 3.8); Hostinger has no known shape, so exact-value only
+    (re.compile(r"gh[pousr]_[A-Za-z0-9]{36,}"), "***"),
+    (re.compile(r"github_pat_[A-Za-z0-9_]{22,}"), "***"),
+    (re.compile(r"pk_[0-9]+_[A-Z0-9]{20,}"), "***"),
+    (re.compile(r"GOCSPX-[A-Za-z0-9_-]{20,}"), "***"),
+    (re.compile(r"1//[0-9A-Za-z_-]{30,}"), "***"),
+    (re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----"), "***"),
 )
 _KEY = re.compile(r"(?i)(^|[_-])(token|secret|password|passwd|api[_-]?key|authorization|cookies?)$")
 

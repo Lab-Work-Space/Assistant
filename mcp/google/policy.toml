@@ -1,0 +1,1072 @@
+# google policy, TASK-040 MCP-07 (spec Appendix A). Anything not listed is blocked (fail closed).
+# tool_sha256 = "" means PENDING: it never matches a live tool, so every tool stays blocked
+# until the owner/tester fills it from `python -m core.mcp dump google` (needs the pinned server installed).
+# Conventions used by this file (MCP-02 loader must accept them):
+#   scope.kind: github_repo | clickup_space | google_calendar | google_drive | hostinger_vm; no `scope` = Praw only.
+#   force values starting "$access:" / "$env:" are resolved from mcp/access.toml / the bot env at call time.
+#   ids = {dot path = kind} (G040-01); an absent key is skipped. Rule paths may use [*]; strings compare strip().casefold().
+#   Base class of a dispatch tool is the lowest class among its dispatch values.
+# Calendar/Drive/Docs/Sheets only, no Gmail (owner answer). Arg names (folder_id, document_id, action enums ...) are best
+# guesses and MUST be checked against `dump`; a mismatch fails closed (scope_unverified / blocked).
+
+service = "google"
+server_version = "2.6.0"
+
+[tools.list_calendars]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.list_calendars.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.list_calendars.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.list_calendars.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.get_events]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.get_events.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.get_events.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.get_events.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.query_freebusy]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.query_freebusy.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.query_freebusy.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.query_freebusy.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.manage_event]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_calendar", arg = ["calendar_id", "destination_calendar_id"] }
+attribution = [{ field = "description", style = "bold_prefix", set_if_absent = true }]
+strip = ["user_google_email", "file_path", "file_url", "fileUrl", "guests_can_modify", "guests_can_invite_others", "guests_can_see_other_guests"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.manage_event.rules]]
+when = { arg = "guests_can_modify", present = true }
+class = "settings"
+[[tools.manage_event.rules]]
+when = { arg = "guests_can_invite_others", present = true }
+class = "settings"
+[[tools.manage_event.rules]]
+when = { arg = "guests_can_see_other_guests", present = true }
+class = "settings"
+[[tools.manage_event.rules]]
+when = { arg = "visibility", equals = "public" }
+class = "settings"
+[[tools.manage_event.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.manage_event.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.manage_event.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+[tools.manage_event.dispatch]
+arg = "action"
+map = { create = "write", update = "write", move = "write", rsvp = "write", delete = "delete_recoverable" }
+
+[tools.manage_calendar]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_calendar", arg = ["calendar_id", "destination_calendar_id"] }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.manage_calendar.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.manage_calendar.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.manage_calendar.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+[tools.manage_calendar.dispatch]
+arg = "action"
+map = { create = "write", list_sharing = "read", share = "settings", update_sharing = "settings", unshare = "settings" }
+
+[tools.manage_out_of_office]
+class = "settings"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.manage_out_of_office.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.manage_out_of_office.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.manage_out_of_office.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.manage_focus_time]
+class = "settings"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.manage_focus_time.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.manage_focus_time.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.manage_focus_time.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.search_drive_files]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.search_drive_files.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.search_drive_files.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.search_drive_files.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.get_drive_file_content]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.get_drive_file_content.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.get_drive_file_content.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.get_drive_file_content.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.get_drive_shareable_link]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.get_drive_shareable_link.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.get_drive_shareable_link.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.get_drive_shareable_link.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.list_drive_items]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.list_drive_items.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.list_drive_items.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.list_drive_items.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.get_drive_file_permissions]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.get_drive_file_permissions.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.get_drive_file_permissions.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.get_drive_file_permissions.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.check_drive_file_public_access]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.check_drive_file_public_access.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.check_drive_file_public_access.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.check_drive_file_public_access.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.get_drive_file_download_url]
+class = "blocked"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.get_drive_file_download_url.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.get_drive_file_download_url.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.get_drive_file_download_url.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.create_drive_file]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "folder_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.create_drive_file.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.create_drive_file.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.create_drive_file.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.create_drive_folder]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "parent_folder_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.create_drive_folder.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.create_drive_folder.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.create_drive_folder.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.import_to_google_doc]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "folder_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.import_to_google_doc.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.import_to_google_doc.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.import_to_google_doc.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.import_to_google_sheets]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "folder_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.import_to_google_sheets.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.import_to_google_sheets.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.import_to_google_sheets.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.import_to_google_slides]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "folder_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.import_to_google_slides.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.import_to_google_slides.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.import_to_google_slides.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.copy_drive_file]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "parent_folder_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.copy_drive_file.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.copy_drive_file.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.copy_drive_file.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.update_drive_file]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "file_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl", "writers_can_share", "copy_requires_writer_permission"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.update_drive_file.rules]]
+when = { arg = "trashed", equals = true }
+class = "delete_recoverable"
+[[tools.update_drive_file.rules]]
+when = { arg = "writers_can_share", present = true }
+class = "settings"
+[[tools.update_drive_file.rules]]
+when = { arg = "copy_requires_writer_permission", present = true }
+class = "settings"
+[[tools.update_drive_file.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.update_drive_file.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.update_drive_file.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.manage_drive_access]
+class = "settings"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.manage_drive_access.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.manage_drive_access.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.manage_drive_access.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.set_drive_file_permissions]
+class = "settings"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.set_drive_file_permissions.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.set_drive_file_permissions.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.set_drive_file_permissions.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.get_doc_content]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.get_doc_content.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.get_doc_content.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.get_doc_content.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.search_docs]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.search_docs.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.search_docs.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.search_docs.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.list_docs_in_folder]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.list_docs_in_folder.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.list_docs_in_folder.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.list_docs_in_folder.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.get_doc_as_markdown]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.get_doc_as_markdown.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.get_doc_as_markdown.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.get_doc_as_markdown.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.list_document_comments]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.list_document_comments.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.list_document_comments.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.list_document_comments.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.inspect_doc_structure]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.inspect_doc_structure.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.inspect_doc_structure.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.inspect_doc_structure.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.debug_table_structure]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.debug_table_structure.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.debug_table_structure.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.debug_table_structure.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.create_doc]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "folder_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.create_doc.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.create_doc.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.create_doc.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.modify_doc_text]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "document_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.modify_doc_text.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.modify_doc_text.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.modify_doc_text.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.find_and_replace_doc]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "document_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.find_and_replace_doc.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.find_and_replace_doc.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.find_and_replace_doc.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.insert_doc_elements]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "document_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.insert_doc_elements.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.insert_doc_elements.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.insert_doc_elements.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.update_paragraph_style]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "document_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.update_paragraph_style.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.update_paragraph_style.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.update_paragraph_style.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.export_doc_to_pdf]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "document_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.export_doc_to_pdf.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.export_doc_to_pdf.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.export_doc_to_pdf.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.insert_doc_image]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "document_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.insert_doc_image.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.insert_doc_image.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.insert_doc_image.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.update_doc_headers_footers]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "document_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.update_doc_headers_footers.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.update_doc_headers_footers.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.update_doc_headers_footers.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.create_table_with_data]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "document_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.create_table_with_data.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.create_table_with_data.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.create_table_with_data.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.manage_document_comment]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "document_id" }
+attribution = [{ field = "content", style = "bold_prefix", set_if_absent = false }]
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.manage_document_comment.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.manage_document_comment.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.manage_document_comment.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+[tools.manage_document_comment.dispatch]
+arg = "action"
+map = { create = "write", reply = "write", resolve = "write", update = "write", delete = "irreversible" }
+
+[tools.manage_doc_tab]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "document_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.manage_doc_tab.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.manage_doc_tab.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.manage_doc_tab.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+[tools.manage_doc_tab.dispatch]
+arg = "action"
+map = { create = "write", rename = "write", populate = "write", delete = "irreversible" }
+
+[tools.batch_update_doc]
+class = "blocked"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.batch_update_doc.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.batch_update_doc.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.batch_update_doc.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.read_sheet_values]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.read_sheet_values.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.read_sheet_values.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.read_sheet_values.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.list_spreadsheets]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.list_spreadsheets.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.list_spreadsheets.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.list_spreadsheets.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.get_spreadsheet_info]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.get_spreadsheet_info.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.get_spreadsheet_info.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.get_spreadsheet_info.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.list_sheet_tables]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.list_sheet_tables.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.list_sheet_tables.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.list_sheet_tables.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.list_spreadsheet_comments]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.list_spreadsheet_comments.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.list_spreadsheet_comments.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.list_spreadsheet_comments.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.create_spreadsheet]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "folder_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.create_spreadsheet.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.create_spreadsheet.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.create_spreadsheet.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.modify_sheet_values]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "spreadsheet_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.modify_sheet_values.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.modify_sheet_values.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.modify_sheet_values.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.format_sheet_range]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "spreadsheet_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.format_sheet_range.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.format_sheet_range.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.format_sheet_range.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.create_sheet]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "spreadsheet_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.create_sheet.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.create_sheet.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.create_sheet.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.append_table_rows]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "spreadsheet_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.append_table_rows.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.append_table_rows.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.append_table_rows.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.move_sheet_rows]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "spreadsheet_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.move_sheet_rows.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.move_sheet_rows.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.move_sheet_rows.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.resize_sheet_dimensions]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "spreadsheet_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.resize_sheet_dimensions.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.resize_sheet_dimensions.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.resize_sheet_dimensions.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.manage_conditional_formatting]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "spreadsheet_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.manage_conditional_formatting.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.manage_conditional_formatting.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.manage_conditional_formatting.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.manage_named_range]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "spreadsheet_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.manage_named_range.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.manage_named_range.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.manage_named_range.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+
+[tools.manage_sheet_tab]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "spreadsheet_id" }
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.manage_sheet_tab.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.manage_sheet_tab.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.manage_sheet_tab.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+[tools.manage_sheet_tab.dispatch]
+arg = "action"
+map = { create = "write", rename = "write", update = "write", duplicate = "write", delete = "delete_recoverable" }
+
+[tools.manage_spreadsheet_comment]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump google`
+scope = { kind = "google_drive", arg = "spreadsheet_id" }
+attribution = [{ field = "content", style = "bold_prefix", set_if_absent = false }]
+strip = ["user_google_email", "file_path", "file_url", "fileUrl"]
+force = { user_google_email = "$env:MCP_GOOGLE_USER_EMAIL" }
+ids = { file_id = "google_file_id", folder_id = "google_file_id", parent_folder_id = "google_file_id", document_id = "google_file_id", spreadsheet_id = "google_file_id", calendar_id = "google_calendar_id", destination_calendar_id = "google_calendar_id" }
+allow_args = []
+[[tools.manage_spreadsheet_comment.rules]]
+when = { arg = "file_path", present = true }
+class = "blocked"
+[[tools.manage_spreadsheet_comment.rules]]
+when = { arg = "file_url", present = true }
+class = "blocked"
+[[tools.manage_spreadsheet_comment.rules]]
+when = { arg = "fileUrl", present = true }
+class = "blocked"
+[tools.manage_spreadsheet_comment.dispatch]
+arg = "action"
+map = { create = "write", reply = "write", resolve = "write", update = "write", delete = "irreversible" }

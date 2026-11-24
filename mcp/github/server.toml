@@ -1,0 +1,24 @@
+# GitHub MCP server (official, Go binary), TASK-040 MCP-07. Env NAMES only; values come from the bot env.
+# Token shape (G040-03, owner-decided OQ-1): fine-grained PAT, resource owner = company org only, expiry <= 90 days,
+# Contents/Issues/Pull requests RW, Metadata R, Actions R, Administration RW. NOT granted: Workflows, Secrets,
+# Webhooks, Members, org admin. The central account is an org member, never an org owner.
+# Starts only if --lockdown-mode is accepted (P-GHFLAGS); otherwise the host marks it not_configured.
+name = "github"
+enabled = true
+command = "bin/github-mcp-server"
+args = ["stdio", "--toolsets=context,repos,issues,pull_requests,labels,actions", "--lockdown-mode"]
+call_timeout_s = 60
+rate_per_min = 60
+max_concurrency = 4
+
+[pin]
+version = "2.2.0"
+# Release tarball sha256 (anchor for scripts/mcp-install.sh). Transcribed via a fetch summariser: Gate 2 re-verifies.
+sha256 = { darwin_arm64 = "5e46b05b87989d23267f0a69ee60a3acd1de51a72512ee5fcc2786ca60c54a6a", darwin_x86_64 = "a42e667b99915cf368b92aa419fd2f753549ea7133cb3572a3e7f3e2d4a8675b", linux_x86_64 = "157c5664b273e5070126d414f88cbab765630acde588f75dafdf9998c2235c51", linux_arm64 = "d21e4fca8603b59d99380f1c332aaea36d73033d52b389867adf2124ee150983" }
+# Extracted-binary sha256 (what the host re-hashes at every start). PENDING until `scripts/mcp-install.sh github`
+# prints it on a trusted install; fill it per platform. PENDING fails closed (not_configured: pin_mismatch).
+binary_sha256 = { darwin_arm64 = "PENDING", darwin_x86_64 = "PENDING", linux_x86_64 = "PENDING", linux_arm64 = "PENDING" }
+
+[env]
+GITHUB_PERSONAL_ACCESS_TOKEN = { from = "MCP_GITHUB_TOKEN", secret = true }
+GITHUB_TOOLSETS = "context,repos,issues,pull_requests,labels,actions"

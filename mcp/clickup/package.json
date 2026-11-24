@@ -1,0 +1,8 @@
+{
+  "name": "employee-mcp-clickup",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pinned ClickUp MCP server for the Employee gateway (TASK-040 MCP-07). Install with: npm ci --ignore-scripts",
+  "engines": { "node": ">=22.13" },
+  "dependencies": { "@hauptsache.net/clickup-mcp": "1.10.0" }
+}

@@ -14,3 +14,7 @@ __pycache__/
 /tests/acceptance/work/
 /tools/spikes/stt/data/
 .pytest_cache/
+/.env
+/mcp/*/bin/
+/mcp/*/node_modules/
+/mcp/*/.venv/

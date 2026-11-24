@@ -222,3 +222,5 @@ def register_commands(app) -> None:
 
     from core.discord.growth_commands import register_growth_commands  # late: it imports this module
     register_growth_commands(app)
+    from core.discord.mcp_commands import register_mcp_commands
+    register_mcp_commands(app)

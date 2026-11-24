@@ -15,7 +15,8 @@ DEDUP_S, FAIL_STOP, MAP_MAX, SEND_MAX = 60.0, 3, 1000, 2000
 SKIP_EVENTS, SKIP_SYSTEMS = {"lib.log"}, {"logforward"}
 # S1214-02: allowlist, extend only through spec edits
 FORWARD_KEYS = {"error", "reason", "code", "status", "persona", "agent", "id", "run", "session", "user", "by", "count",
-                "guild", "kind", "level", "size", "exc_type", "model", "provider", "task", "event", "on_deleted"}
+                "guild", "kind", "level", "size", "exc_type", "model", "provider", "task", "event", "on_deleted",
+                "service", "tool"}
 
 
 # Gate 2 G2S1214-01: json.loads restores escaped line breaks and bidi controls; fold each 1:1 so a value cannot forge a line

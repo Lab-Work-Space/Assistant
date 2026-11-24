@@ -1,0 +1,51 @@
+# hostinger policy, TASK-040 MCP-07 (spec Appendix A). Anything not listed is blocked (fail closed).
+# tool_sha256 = "" means PENDING: it never matches a live tool, so every tool stays blocked
+# until the owner/tester fills it from `python -m core.mcp dump hostinger` (needs the pinned server installed).
+# Conventions used by this file (MCP-02 loader must accept them):
+#   scope.kind: github_repo | clickup_space | google_calendar | google_drive | hostinger_vm; no `scope` = Praw only.
+#   force values starting "$access:" / "$env:" are resolved from mcp/access.toml / the bot env at call time.
+#   ids = {dot path = kind} (G040-01); an absent key is skipped. Rule paths may use [*]; strings compare strip().casefold().
+#   Base class of a dispatch tool is the lowest class among its dispatch values.
+# VPS only (owner answer): server.toml launches node_modules/@hostinger/mcp/src/servers/vps.js. vps_docker_create/update are settings (G040-02, owner may lower to irreversible).
+
+service = "hostinger"
+server_version = "4.20.1"
+
+[tools.search]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump hostinger`
+strip = []
+force = {}
+
+[tools.multi-execute]
+class = "blocked"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump hostinger`
+strip = []
+force = {}
+
+[tools.execute]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump hostinger`
+scope = { kind = "hostinger_vm", arg = "params.virtualMachineId" }
+strip = []
+force = {}
+ids = { "params.virtualMachineId" = "hostinger_id" }
+free_text = []
+[[tools.execute.rules]]
+when = { arg = "params.password", present = true }
+class = "settings"
+[[tools.execute.rules]]
+when = { arg = "params.root_password", present = true }
+class = "settings"
+[[tools.execute.rules]]
+when = { arg = "params.panel_password", present = true }
+class = "settings"
+[[tools.execute.rules]]
+when = { arg = "params.post_install_script_id", present = true }
+class = "settings"
+[[tools.execute.rules]]
+when = { arg = "params.public_key", present = true }
+class = "settings"
+[tools.execute.dispatch]
+arg = "operation"
+map = { changelog_list-entries = "read", vps_data-centers_list = "read", vps_virtual-machines_list = "read", vps_virtual-machines_get = "read", vps_virtual-machines_metrics = "read", vps_actions_list = "read", vps_actions_get = "read", vps_backups_list = "read", vps_snapshots_get = "read", vps_templates_list = "read", vps_templates_get = "read", vps_docker_list = "read", vps_docker_get = "read", vps_docker_containers = "read", vps_docker_logs = "read", vps_firewall_list = "read", vps_firewall_get = "read", vps_public-keys_list = "read", vps_ssh-keys_list-virtual-machine = "read", vps_post-install-scripts_list = "read", vps_post-install-scripts_get = "read", vps_monarx_scan-metrics = "read", vps_virtual-machines_start = "write", vps_virtual-machines_stop = "write", vps_virtual-machines_restart = "write", vps_docker_start = "write", vps_docker_stop = "write", vps_docker_restart = "write", vps_virtual-machines_recreate = "irreversible", vps_backups_restore = "irreversible", vps_snapshots_restore = "irreversible", vps_snapshots_delete = "irreversible", vps_snapshots_create = "irreversible", vps_docker_delete = "irreversible", vps_docker_create = "settings", vps_docker_update = "settings", vps_firewall_activate = "settings", vps_firewall_deactivate = "settings", vps_firewall_create = "settings", vps_firewall_update-rule = "settings", vps_firewall_delete = "settings", vps_firewall_delete-rule = "settings", vps_firewall_create-rule = "settings", vps_firewall_replace-all-rules-in-group = "settings", vps_firewall_sync = "settings", vps_firewall_sync-to-all-assigned-v-ms = "settings", vps_public-keys_create = "settings", vps_public-keys_delete = "settings", vps_ssh-keys_add-virtual-machine = "settings", vps_ssh-keys_remove-virtual-machine = "settings", vps_virtual-machines_set-hostname = "settings", vps_virtual-machines_reset-hostname = "settings", vps_virtual-machines_set-nameservers = "settings", vps_virtual-machines_set-root-password = "settings", vps_virtual-machines_set-panel-password = "settings", vps_virtual-machines_setup = "settings", vps_ptr_create = "settings", vps_ptr_delete = "settings", vps_recovery_start = "settings", vps_recovery_stop = "settings", vps_monarx_install = "settings", vps_monarx_uninstall = "settings", vps_post-install-scripts_create = "settings", vps_post-install-scripts_update = "settings", vps_post-install-scripts_delete = "settings", vps_virtual-machines_purchase = "payment" }

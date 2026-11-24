@@ -1,0 +1,133 @@
+# clickup policy, TASK-040 MCP-07 (spec Appendix A). Anything not listed is blocked (fail closed).
+# tool_sha256 = "" means PENDING: it never matches a live tool, so every tool stays blocked
+# until the owner/tester fills it from `python -m core.mcp dump clickup` (needs the pinned server installed).
+# Conventions used by this file (MCP-02 loader must accept them):
+#   scope.kind: github_repo | clickup_space | google_calendar | google_drive | hostinger_vm; no `scope` = Praw only.
+#   force values starting "$access:" / "$env:" are resolved from mcp/access.toml / the bot env at call time.
+#   ids = {dot path = kind} (G040-01); an absent key is skipped. Rule paths may use [*]; strings compare strip().casefold().
+#   Base class of a dispatch tool is the lowest class among its dispatch values.
+# The chosen server has no delete/settings/payment tools (OQ-4).
+
+service = "clickup"
+server_version = "1.10.0"
+
+[tools.getTaskById]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump clickup`
+strip = []
+force = {}
+ids = { task_id = "clickup_id", list_id = "clickup_id", doc_id = "clickup_id", space_id = "clickup_id" }
+
+[tools.searchTasks]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump clickup`
+strip = []
+force = {}
+ids = { task_id = "clickup_id", list_id = "clickup_id", doc_id = "clickup_id", space_id = "clickup_id" }
+
+[tools.searchSpaces]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump clickup`
+strip = []
+force = {}
+ids = { task_id = "clickup_id", list_id = "clickup_id", doc_id = "clickup_id", space_id = "clickup_id" }
+
+[tools.getListInfo]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump clickup`
+strip = []
+force = {}
+ids = { task_id = "clickup_id", list_id = "clickup_id", doc_id = "clickup_id", space_id = "clickup_id" }
+
+[tools.getTimeEntries]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump clickup`
+strip = []
+force = {}
+ids = { task_id = "clickup_id", list_id = "clickup_id", doc_id = "clickup_id", space_id = "clickup_id" }
+
+[tools.readDocument]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump clickup`
+strip = []
+force = {}
+ids = { task_id = "clickup_id", list_id = "clickup_id", doc_id = "clickup_id", space_id = "clickup_id" }
+
+[tools.searchDocuments]
+class = "read"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump clickup`
+strip = []
+force = {}
+ids = { task_id = "clickup_id", list_id = "clickup_id", doc_id = "clickup_id", space_id = "clickup_id" }
+
+[tools.addComment]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump clickup`
+scope = { kind = "clickup_space", arg = "task_id" }
+attribution = [{ field = "comment", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { task_id = "clickup_id", list_id = "clickup_id", doc_id = "clickup_id", space_id = "clickup_id" }
+
+[tools.editComment]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump clickup`
+scope = { kind = "clickup_space", arg = "task_id" }
+attribution = [{ field = "comment", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { task_id = "clickup_id", list_id = "clickup_id", doc_id = "clickup_id", space_id = "clickup_id" }
+
+[tools.createTask]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump clickup`
+scope = { kind = "clickup_space", arg = "list_id" }
+attribution = [{ field = "description", style = "bold_prefix", set_if_absent = true }]
+strip = []
+force = {}
+ids = { task_id = "clickup_id", list_id = "clickup_id", doc_id = "clickup_id", space_id = "clickup_id" }
+
+[tools.updateTask]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump clickup`
+scope = { kind = "clickup_space", arg = "task_id" }
+attribution = [{ field = "description", style = "bold_prefix", set_if_absent = false }, { field = "append_description", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { task_id = "clickup_id", list_id = "clickup_id", doc_id = "clickup_id", space_id = "clickup_id" }
+
+[tools.updateListInfo]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump clickup`
+scope = { kind = "clickup_space", arg = "list_id" }
+attribution = [{ field = "append_description", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { task_id = "clickup_id", list_id = "clickup_id", doc_id = "clickup_id", space_id = "clickup_id" }
+
+[tools.createTimeEntry]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump clickup`
+scope = { kind = "clickup_space", arg = "task_id" }
+attribution = [{ field = "description", style = "bold_prefix", set_if_absent = true }]
+strip = []
+force = {}
+ids = { task_id = "clickup_id", list_id = "clickup_id", doc_id = "clickup_id", space_id = "clickup_id" }
+
+[tools.updateDocumentPage]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump clickup`
+scope = { kind = "clickup_space", arg = "doc_id" }
+attribution = [{ field = "content", style = "bold_prefix", set_if_absent = false }]
+strip = []
+force = {}
+ids = { task_id = "clickup_id", list_id = "clickup_id", doc_id = "clickup_id", space_id = "clickup_id" }
+
+[tools.createDocumentOrPage]
+class = "write"
+tool_sha256 = ""  # PENDING: fill from `python -m core.mcp dump clickup`
+scope = { kind = "clickup_space", arg = ["space_id", "list_id", "doc_id"] }
+attribution = [{ field = "content", style = "bold_prefix", set_if_absent = true }]
+strip = []
+force = {}
+ids = { task_id = "clickup_id", list_id = "clickup_id", doc_id = "clickup_id", space_id = "clickup_id" }
