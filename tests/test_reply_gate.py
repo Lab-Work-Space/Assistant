@@ -1,3 +1,4 @@
+import asyncio
 import dataclasses
 import types
 
@@ -180,3 +181,17 @@ async def test_ignored_and_disabled(tmp_path, db):
     assert t[4].runs == []
     t[1].client_for = lambda pid: None if pid == "tek" else object()
     assert await who(t, "x", mentions=[U(TEK_BOT)]) == ["praw"]
+
+
+@pytest.mark.parametrize("fail", ["error", "hang"])
+async def test_tier2_adapter_error_or_timeout_is_silent(tmp_path, db, fail):
+    """Gate 2 info note: a provider exception or a hung call must stay silent and log gate.tier2_failed."""
+    t = make(tmp_path, db, REPLY_TIER2_TIMEOUT_S="0.05")
+
+    async def broken(**kw):
+        if fail == "error":
+            raise RuntimeError("provider down")
+        await asyncio.sleep(5)
+    t[3].complete = broken
+    assert await who(t, "the praw project deadline is friday") == []
+    assert any(r[0] == "gate.tier2_failed" for r in t[2].log.rows)

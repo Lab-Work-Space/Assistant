@@ -133,7 +133,7 @@ Full controls and conditions: spec §6, §10 and §11; the Gate reports listed i
 - Slice B: `deploy/employee.service` runs `python -m core` (`core/__main__.py` exists). The VPS service is enabled only at B1-ENABLE.
 - Slice B: the ffmpeg carve-out in spec §10.6.4 must be resolved by the sa role before TASK-016 (spec §10.17).
 - Slice B: Discord setup readiness is the owner's decision (plan, Slice B).
-- Growth (v0.3.0): no Security Gate 2 report for TASK-033 is in `docs/security/` yet. Gate 1 conditions G033-01 to G033-12 are in the growth spec §9.
+- Growth (v0.3.x): Security Gate 2 passed after re-check (`docs/security/2026-11-24-gate2-task033.md`); open follow-ups are residual G1 prefixed keyword forms (accepted risk) and VPS deploy (final phase).
 - Off-host backup: none in Slice A (spec §11 OQ-3). Local backups do not survive loss of the disk.
 - Spec §7 defaults (defaults stated for owner awareness, changeable without schema change): late-joiner DM failure is never captured; an agent can start recording only when the requester is in that voice channel; budget is per agent; a plain human message in an open task thread is treated as addressed to the assignee; spoken commands are not in phase 1.
 
@@ -154,7 +154,7 @@ Full controls and conditions: spec §6, §10 and §11; the Gate reports listed i
 
 ## 9. Growth module (v0.3.0)
 
-Source: `docs/specs/2026-11-24-growth-spec.md` (requirements R1-R28, owner calls in §0, Gate 1 conditions G033-01 to G033-12 in §9). Gate 1 verdict: `docs/security/2026-11-24-gate1-task033.md` (CONDITIONAL_APPROVE). No Gate 2 report for TASK-033 is in `docs/security/` at the time of writing. Package `core/growth/` (`ext.py` wiring, `lessons.py`, `overlays.py`, `personas.py`, `g1.py` fixed routing rules, `__init__.py` with `OVERLAY_HARD_MAX_CHARS = 13300`). Slash commands: `core/discord/growth_commands.py`.
+Source: `docs/specs/2026-11-24-growth-spec.md` (requirements R1-R28, owner calls in §0, Gate 1 conditions G033-01 to G033-12 in §9). Gate 1 verdict: `docs/security/2026-11-24-gate1-task033.md` (CONDITIONAL_APPROVE). Gate 2 verdict: `docs/security/2026-11-24-gate2-task033.md` (PASS after re-check). Package `core/growth/` (`ext.py` wiring, `lessons.py`, `overlays.py`, `personas.py`, `g1.py` fixed routing rules, `__init__.py` with `OVERLAY_HARD_MAX_CHARS = 13300`). Slash commands: `core/discord/growth_commands.py`.
 
 ### 9.1 Lesson flow
 - A task that ends `done` or `failed` starts a fire-and-forget lesson proposal. It never raises into `TaskService.update`.

@@ -132,29 +132,29 @@ async def test_record_failure_accounted(mem):
     mem["fail"] = True
     await g.record("praw", "google", "gemini-3.8-flash", Usage(1000, 1000), "chat")  # no raise
     ev, lvl, f = ctx.log.rows[0]
-    assert (ev, lvl) == ("budget.record_failed", "ERROR") and f["cost_micro_usd"] == 2800
+    assert (ev, lvl) == ("budget.record_failed", "ERROR") and f["cost_micro_usd"] == 9000  # 1000*1.5 + 1000*7.5
     mem["fail"] = False
     mem["spent"] = 0
     assert await g.level("praw") == "ok"
     mem["fail"] = True
-    await g.record("praw", "x", "claude-opus-5-5", Usage(0, 11_000), "chat")  # 825_000 never reaches the DB
+    await g.record("praw", "x", "claude-opus-5-5", Usage(0, 40_000), "chat")  # 800_000 never reaches the DB
     mem["fail"] = False
     mem["spent"] = 0
-    assert await g.level("praw") == "warn"  # unrecorded 827_800 counted
+    assert await g.level("praw") == "warn"  # unrecorded 809_000 counted
 
 
 async def test_image_tts_stt_cost_and_gating(mem):
     g = G.Guard(mkctx())
-    mem["limit"] = 80_000
+    mem["limit"] = 120_000
     await g.record("praw", "google", "img", Usage(), "image", units=1, ref="r")
-    assert mem["rows"][0][8] == 40_000 and mem["rows"][0][7] == 1
+    assert mem["rows"][0][8] == 67_000 and mem["rows"][0][7] == 1
     await g.record("praw", "google", "tts", Usage(), "tts", units=1000)
     assert mem["rows"][1][8] == 30_000
-    assert await g.level("praw") == "warn"      # 70_000 of 80_000
-    await g.record("praw", "google", "stt", Usage(), "stt", units=300)
-    assert await g.level("praw") == "stop"      # 100_000 = 125%
+    assert await g.level("praw") == "warn"      # 97_000 of 120_000
+    await g.record("praw", "google", "stt", Usage(), "stt", units=500)
+    assert await g.level("praw") == "stop"      # 147_000 = 122.5%
     # image/TTS callers refuse at fallback|stop; the guard must report them
-    mem["spent"] = 80_000
+    mem["spent"] = 120_000
     assert await g.level("praw") == "fallback"
 
 
@@ -163,7 +163,7 @@ async def test_unknown_model_charged_max_and_warned_once(mem):
     g = G.Guard(ctx)
     await g.record("praw", "x", "mystery", Usage(1_000_000, 0), "chat")
     await g.record("praw", "x", "mystery", Usage(0, 0), "chat")
-    assert mem["rows"][0][8] == 15_000_000
+    assert mem["rows"][0][8] == max(p[0] for p in __import__("core.budget.prices", fromlist=["TOKEN"]).TOKEN.values())
     assert [r[0] for r in ctx.log.rows].count("budget.unknown_model") == 1
 
 
@@ -195,11 +195,11 @@ async def test_db_roundtrip(db):
         g.notifier = n
         assert await g.set_limit("praw", Decimal("1.00"), ADMIN) == "ok"
         assert await g.level("praw") == "ok"
-        await g.record("praw", "google", "gemini-3.8-flash", Usage(0, 320_000), "chat", ref="a")  # 800_000
+        await g.record("praw", "google", "gemini-3.8-flash", Usage(0, 108_000), "chat", ref="a")  # 810_000
         assert await g.level("praw") == "warn"
-        await g.record("praw", "google", "gemini-3.8-flash", Usage(0, 80_000), "chat", ref="b:est")  # 1_000_000
+        await g.record("praw", "google", "gemini-3.8-flash", Usage(0, 26_000), "chat", ref="b:est")  # 1_005_000
         assert await g.level("praw") == "fallback"
-        await g.record("praw", "google", "img", Usage(), "image", units=5, ref="c")  # +200_000 -> 120%
+        await g.record("praw", "google", "img", Usage(), "image", units=5, ref="c")  # +335_000 -> 134%
         assert await g.level("praw") == "stop"
         assert await g.level("praw") == "stop"
         assert sent == ["warn80", "fallback100", "stop120"]

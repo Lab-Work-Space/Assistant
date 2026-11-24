@@ -22,3 +22,6 @@ Up: [docs index](../_index.md)
   - [Parallelism](2026-11-23-phase1-plan.md#parallelism)
   - [Risks](2026-11-23-phase1-plan.md#risks)
   - [Roadmap (phases 2-4, no WBS)](2026-11-23-phase1-plan.md#roadmap-phases-2-4-no-wbs)
+- [TASK-033 DoD sign-off (v0.3.0 Growth + v0.3.1 fixes)](2026-11-24-task033-dod.md) — No TASK-033 plan file existed (only phase1 plan), so this note is standalone. Not appended to `_index.md`.
+  - [Not met / open](2026-11-24-task033-dod.md#not-met--open)
+  - [Accepted risk and follow-ups (non-blocking)](2026-11-24-task033-dod.md#accepted-risk-and-follow-ups-non-blocking)

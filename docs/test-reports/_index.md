@@ -19,6 +19,7 @@ Up: [docs index](../_index.md)
   - [3. G033 results](2026-11-24-task033-growth.md#3-g033-results)
   - [4. E2E coverage (`tests/acceptance_growth/test_growth_e2e.py`)](2026-11-24-task033-growth.md#4-e2e-coverage-testsacceptance_growthtest_growth_e2epy)
   - [5. Commands and output](2026-11-24-task033-growth.md#5-commands-and-output)
+  - [6. Re-check addendum (2026-11-24)](2026-11-24-task033-growth.md#6-re-check-addendum-2026-11-24)
 - [Phase 1 Slice A acceptance report (TASK-021A)](phase1-sliceA.md) — TASK-021A acceptance via CLI script; DEFECT-1..2 | test, phase1
   - [Results (all rc=0 unless noted)](phase1-sliceA.md#results-all-rc0-unless-noted)
   - [AC-10 secret grep](phase1-sliceA.md#ac-10-secret-grep)

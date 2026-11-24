@@ -134,6 +134,9 @@ Folder index: [plans/_index.md](plans/_index.md)
   - [Parallelism](plans/2026-11-23-phase1-plan.md#parallelism)
   - [Risks](plans/2026-11-23-phase1-plan.md#risks)
   - [Roadmap (phases 2-4, no WBS)](plans/2026-11-23-phase1-plan.md#roadmap-phases-2-4-no-wbs)
+- [TASK-033 DoD sign-off (v0.3.0 Growth + v0.3.1 fixes)](plans/2026-11-24-task033-dod.md) — No TASK-033 plan file existed (only phase1 plan), so this note is standalone. Not appended to `_index.md`.
+  - [Not met / open](plans/2026-11-24-task033-dod.md#not-met--open)
+  - [Accepted risk and follow-ups (non-blocking)](plans/2026-11-24-task033-dod.md#accepted-risk-and-follow-ups-non-blocking)
 
 ## plans/briefs
 
@@ -504,6 +507,7 @@ Folder index: [test-reports/_index.md](test-reports/_index.md)
   - [3. G033 results](test-reports/2026-11-24-task033-growth.md#3-g033-results)
   - [4. E2E coverage (`tests/acceptance_growth/test_growth_e2e.py`)](test-reports/2026-11-24-task033-growth.md#4-e2e-coverage-testsacceptance_growthtest_growth_e2epy)
   - [5. Commands and output](test-reports/2026-11-24-task033-growth.md#5-commands-and-output)
+  - [6. Re-check addendum (2026-11-24)](test-reports/2026-11-24-task033-growth.md#6-re-check-addendum-2026-11-24)
 - [Phase 1 Slice A acceptance report (TASK-021A)](test-reports/phase1-sliceA.md) — TASK-021A acceptance via CLI script; DEFECT-1..2 | test, phase1
   - [Results (all rc=0 unless noted)](test-reports/phase1-sliceA.md#results-all-rc0-unless-noted)
   - [AC-10 secret grep](test-reports/phase1-sliceA.md#ac-10-secret-grep)
