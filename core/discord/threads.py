@@ -47,12 +47,23 @@ class DiscordThreadPort:
         app = self._app()
         return app.ctx.sinks.for_channel(self._threads.get(channel_or_thread_id, channel_or_thread_id), persona)
 
+    def visible_to(self, channel_id: int, persona) -> bool:
+        """Can this persona's client (or Praw for a disabled persona) see the channel and post in its threads?"""
+        app = self._app()
+        client = app.client_for(persona.id) or app.intake
+        ch = client.get_channel(channel_id)
+        if ch is None or getattr(ch, "guild", None) is None:
+            return False
+        p = ch.permissions_for(ch.guild.me)
+        return bool(p.view_channel and p.send_messages_in_threads)
+
     async def create_thread(self, channel_id: int, message_id: int, name: str) -> int:
         app = self._app()
         ch = await self._channel(app, channel_id)
         if getattr(getattr(ch, "guild", None), "id", None) != app.cfg.discord_guild_id or not app.gate.channel_ok(ch):
             raise TargetError("target_not_allowed")
-        th = await ch.get_partial_message(message_id).create_thread(name=mask_secrets(name)[:100])
+        # py-cord 2.8 PartialMessage has no create_thread; the channel method starts a thread on a message by id
+        th = await ch.create_thread(name=mask_secrets(name)[:100], message=discord.Object(id=message_id))
         if len(self._threads) >= HISTORY_CAP:
             self._threads.pop(next(iter(self._threads)))
         self._threads[th.id] = th  # the intake cache may not have the new thread yet

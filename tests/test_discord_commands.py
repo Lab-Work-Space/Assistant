@@ -72,6 +72,7 @@ async def w(tmp_path, db):
 
     async def noop(row): return None
     ctx.approvals.register_handler("generic", noop)
+    w.app.bots.update({p.id: w.bot for p in REG.all()})  # R24: a head needs its own client
     K.register_commands(w.app)
     w.db = db
     w.log = w.app.log
@@ -194,8 +195,9 @@ async def test_commands_are_gate_first_bounded_and_no_autocomplete(w):
     for bad in (inter(w, typ=discord.InteractionType.component), inter(w, guild=7), inter(w, guild=None)):
         await K.task_show(w.app, bad, t["code"])
         assert bad.response.said and t["code"] not in said(bad)
-    groups = w.app.intake.commands
-    assert [g.name for g in groups] == ["task", "approval", "setting"]
+    allc = w.app.intake.commands
+    groups = allc[:3]
+    assert [g.name for g in allc][:3] == ["task", "approval", "setting"]  # growth commands follow (T5)
     subs = {(g.name, c.name) for g in groups for c in g.subcommands}
     assert subs == {("task", "show"), ("task", "edit"), ("task", "cancel"), ("approval", "show"), ("approval", "cancel"),
                     ("setting", "view"), ("setting", "set"), ("setting", "reset")}

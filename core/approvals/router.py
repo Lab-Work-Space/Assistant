@@ -14,7 +14,7 @@ class Router:
     def __init__(self, settings, personas, classify, log):
         self.settings, self.personas, self.classify, self.log = settings, personas, classify, log
 
-    async def route(self, *, kind, access, value_thb, other_depts, requested_by, dept_slug, involved, card, aid):
+    async def route(self, *, kind, access, value_thb, other_depts, requested_by, dept_slug, involved, card, aid, classify=None):
         """-> (level, dept_code, route_reason). card: dict for the classifier."""
         s, code = self.settings, code_of(dept_slug)
 
@@ -38,7 +38,7 @@ class Router:
         if not await s.ai_enabled():
             return hq("ai_disabled")
         try:
-            out = await self.classify(card, aid)
+            out = await (classify or self.classify)(card, aid)
         except Exception as e:  # type only: exception text may carry secrets (T031-04c)
             self.log.write_log("approvals", "approval.classify_failed", "WARNING", error=type(e).__name__)
             return hq("classifier_unavailable")

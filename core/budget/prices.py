@@ -2,6 +2,7 @@
 shortcut: placeholder list prices, review against the providers' price pages before go-live."""
 TOKEN = {
     "gemini-3.8-flash": (300_000, 2_500_000),
+    "gemini-3.1-flash-lite": (100_000, 400_000),
     "claude-opus-5-5": (15_000_000, 75_000_000),
     "claude-sonnet-5-5": (3_000_000, 15_000_000),
     "claude-haiku-5-5": (1_000_000, 5_000_000),

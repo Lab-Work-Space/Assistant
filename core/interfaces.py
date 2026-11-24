@@ -334,6 +334,7 @@ class AppContext:
     threads: Any | None = None               # ThreadPort, set by the surface
     approval_presenter: Any | None = None    # ApprovalPresenter, set by the surface
     settings: Any | None = None              # SettingsService, set by core.settings.ext
+    growth: Any | None = None                # GrowthService, set by core.growth.ext (TASK-033)
 
 
 def require_real_budget(ctx: AppContext) -> None:

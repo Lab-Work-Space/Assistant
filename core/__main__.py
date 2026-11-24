@@ -35,11 +35,12 @@ async def amain(env=None, bot_factory=make_bot, install_signals=True, providers=
             pdir = config.prompts_dir if os.path.isabs(config.prompts_dir) else str(PROJECT_ROOT / config.prompts_dir)
             personas = FilePersonaRegistry.load(pdir, config.default_agent_id, config.default_cheap_model)
             by_suffix = {env_suffix(p.id): p.id for p in personas.all()}
-            tokens = {}
+            tokens, deferred = {}, {}
             for suf, tok in config.persona_tokens.items():
-                if suf not in by_suffix:
-                    raise Refusal("unknown_persona_token:" + suf)
-                tokens[by_suffix[suf]] = tok
+                if suf in by_suffix:
+                    tokens[by_suffix[suf]] = tok
+                else:
+                    deferred[suf] = tok  # may belong to a hired persona: decided after the DB opens (R23)
             if "SYSTEM" in by_suffix:  # 12.14.2: the id is reserved
                 raise Refusal("persona_id_reserved:system")
             if config.intake_persona not in tokens:
@@ -47,6 +48,20 @@ async def amain(env=None, bot_factory=make_bot, install_signals=True, providers=
             log = Log(os.path.join(prepare_log_dir(config.log_dir), "app.jsonl"), stdout=False)
             install_logging(log, config.log_level)
             pool = await open_database(config.database_path)
+            from core.growth.personas import RuntimePersonaRegistry, load_departments
+            await load_departments(pool)
+            file_personas = personas
+            personas = await RuntimePersonaRegistry.load(pool, file_personas, pdir, config.default_cheap_model, log)
+            hired = {env_suffix(i): i for i in personas.known_ids() if i not in {p.id for p in file_personas.all()}}
+            for suf, tok in deferred.items():
+                if suf not in hired:
+                    raise Refusal("unknown_persona_token:" + suf)
+                tokens[hired[suf]] = tok
+            for pid in [i for i in tokens if personas.is_fired(i)]:  # G033-09: fired personas get no client
+                del tokens[pid]
+                log.write_log("discord", "persona.token_fired", "WARNING", id=pid)
+            if config.intake_persona not in tokens:
+                raise Refusal("missing:DISCORD_BOT_TOKEN_" + env_suffix(config.intake_persona))
         except Exception as e:
             return _refuse(e if isinstance(e, (Refusal, ConfigError, DbError)) else type(e).__name__)
         bots = {pid: bot_factory(config, pid == config.intake_persona) for pid in tokens}

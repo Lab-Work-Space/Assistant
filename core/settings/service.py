@@ -8,9 +8,21 @@ _INT = re.compile(r"^[0-9]{1,12}$")
 _SNOW = re.compile(r"^[0-9]{17,20}$")
 THRESHOLD_DEFAULT = 10_000
 _INTS = {"approval.hq_threshold_thb": (1, 100_000_000), "approval.ttl_h": (1, 168),
-         "approval.rate_per_day": (1, 100), "approval.ai_daily_max": (0, 200)}
+         "approval.rate_per_day": (1, 100), "approval.ai_daily_max": (0, 200),
+         "growth.lessons_per_day": (0, 50), "growth.overlay_max_chars": (500, 6000)}
 _CODES = tuple(DEPT_CODES[s].lower() for s in DEPT_SLUGS)
-KEYS = (*_INTS, "approval.ai_enabled", *(f"approval.channel.{c}" for c in _CODES), *(f"approval.head.{c}" for c in _CODES))
+# a list: register_dept extends it in place, so every importer sees new departments (TASK-033 R21)
+KEYS = [*_INTS, "approval.ai_enabled", *(f"approval.channel.{c}" for c in _CODES), *(f"approval.head.{c}" for c in _CODES)]
+
+
+def register_dept(slug: str, code: str) -> None:
+    """Idempotent; mutates DEPT_CODES, DEPT_SLUGS and KEYS in place."""
+    DEPT_CODES[slug] = code
+    if slug not in DEPT_SLUGS:
+        DEPT_SLUGS.append(slug)
+    for k in (f"approval.channel.{code.lower()}", f"approval.head.{code.lower()}"):
+        if k not in KEYS:
+            KEYS.append(k)
 
 
 class SettingsError(Exception):
@@ -39,6 +51,10 @@ class SettingsService:
             return "20"
         if key == "approval.ai_enabled":
             return "on"
+        if key == "growth.lessons_per_day":
+            return "3"
+        if key == "growth.overlay_max_chars":
+            return "3000"
         code = key.rsplit(".", 1)[1]
         slug = next(s for s in DEPT_SLUGS if DEPT_CODES[s].lower() == code)
         if key.startswith("approval.channel."):
@@ -61,6 +77,8 @@ class SettingsService:
     async def ttl_h(self) -> int: return await self._int("approval.ttl_h")
     async def rate_per_day(self) -> int: return await self._int("approval.rate_per_day")
     async def ai_daily_max(self) -> int: return await self._int("approval.ai_daily_max")
+    async def lessons_per_day(self) -> int: return await self._int("growth.lessons_per_day")
+    async def overlay_max_chars(self) -> int: return await self._int("growth.overlay_max_chars")
     async def ai_enabled(self) -> bool: return await self.get("approval.ai_enabled") == "on"
 
     async def approval_channel(self, code: str) -> str:
@@ -74,6 +92,19 @@ class SettingsService:
         return None if v == "none" else v
 
     # -- validation --------------------------------------------------------------------------------------
+    def validate_channel(self, raw: str) -> str:
+        """'hq' or an allowlisted snowflake that is neither the settings nor the admin channel."""
+        raw = (raw or "").strip()
+        if raw.lower() == "hq":
+            return "hq"
+        if not _SNOW.fullmatch(raw):
+            raise SettingsError("invalid_value")
+        cid = int(raw)
+        if cid in (getattr(self.cfg, "settings_channel_id", None), self.cfg.admin_notify_channel_id) \
+                or self.channel_ok is None or not self.channel_ok(cid):
+            raise SettingsError("invalid_value")
+        return str(cid)
+
     def validate(self, key: str, raw: str) -> str:
         if key not in KEYS:
             raise SettingsError("unknown_key")
@@ -91,15 +122,7 @@ class SettingsService:
             return raw.lower()
         code = key.rsplit(".", 1)[1]
         if key.startswith("approval.channel."):
-            if raw.lower() == "hq":
-                return "hq"
-            if not _SNOW.fullmatch(raw):
-                raise bad
-            cid = int(raw)
-            if cid in (getattr(self.cfg, "settings_channel_id", None), self.cfg.admin_notify_channel_id) \
-                    or self.channel_ok is None or not self.channel_ok(cid):
-                raise bad
-            return str(cid)
+            return self.validate_channel(raw)
         if raw.lower() == "none":
             return "none"
         p = self.personas.get(raw) if self.personas is not None else None

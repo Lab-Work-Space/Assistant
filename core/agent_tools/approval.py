@@ -47,7 +47,7 @@ def make_approval_request(app) -> ToolSpec:
         code = await app.db.fetchval("SELECT code FROM approvals WHERE id=?1", aid) if getattr(app, "db", None) else None
         return ToolResult(ok=True, content=f"approval_id={aid} code={code}", data={"approval_id": aid, "code": code})
 
-    return ToolSpec("approval_request", "Ask the humans for approval; you are woken when it is decided. Needs reason, "
+    return ToolSpec("approval_request", "Ask for approval (your department head or HQ, routed automatically); you are woken when it is decided. Needs reason, "
                     "value_thb (honest estimate), priority and due.", SCHEMA, handler)
 
 

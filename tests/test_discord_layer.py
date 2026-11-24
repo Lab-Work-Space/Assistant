@@ -343,7 +343,9 @@ async def test_main_refusals(tmp_path, monkeypatch, capsys):
     e = fake_env(tmp_path, DISCORD_BOT_TOKEN_PRAW=None, DISCORD_APP_ID_PRAW=None, DISCORD_BOT_TOKEN_TEK=TOK_TEK, DISCORD_APP_ID_TEK="12")
     assert await amain(e, install_signals=False) == 2
     assert "missing:DISCORD_BOT_TOKEN_PRAW" in capsys.readouterr().err
-    assert await amain(fake_env(tmp_path, DISCORD_BOT_TOKEN_NOBODY=TOK_TEK, DISCORD_APP_ID_NOBODY="3"), install_signals=False) == 2
+    from tests.conftest import make_db_path   # R23/OQ-5: the unknown-suffix check now runs after the DB opens
+    assert await amain(fake_env(tmp_path, DISCORD_BOT_TOKEN_NOBODY=TOK_TEK, DISCORD_APP_ID_NOBODY="3",
+                                DATABASE_PATH=make_db_path(tmp_path), LOG_DIR=str(tmp_path / "logs")), install_signals=False) == 2
     assert "unknown_persona_token:NOBODY" in capsys.readouterr().err
     assert await amain(fake_env(tmp_path, CHANNEL_ALLOWLIST=None), install_signals=False) == 2
     assert "allowlist_empty" in capsys.readouterr().err

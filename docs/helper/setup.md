@@ -12,25 +12,26 @@ referenced_plan: "docs/plans/2026-11-23-phase1-plan.md"
 
 ## Contents
 
-- 1. Before you start — L39
-- 2. Secrets (environment only) — L45
-- 3. Process-only flag (CLI dev mode) — L57
-- 4. Required configuration (spec §5.7) — L70
-- 4.1 Runtime settings (TASK-031) — L99
-- 4.2 Reply streaming (STREAM_MODE) — L116
-- 5. Retention settings (spec §10.0) — L119
-- 6. Startup checks you will hit — L126
-- 7. Local run (CLI) — L137
-- 8. Native VPS deploy (spec §11.11, §11.18) — L153
-  - 8.1 Accounts (owner checklist, spec §11.18.2) — L157
-  - 8.2 Deploy or upgrade — L179
-  - 8.3 Editing the env file — L194
-  - 8.4 Weekly dependency scan (dev account) — L210
-  - 8.5 Restore a backup (spec §11.18.3) — L222
-  - 8.6 Restore the knowledge directory (spec §11.19.9) — L240
-  - 8.7 Restoring a Hostinger backup (spec §11.19.10) — L256
-- 9. Checks for a new environment — L266
-- 10. Related documents — L272
+- 1. Before you start — L40
+- 2. Secrets (environment only) — L46
+- 3. Process-only flag (CLI dev mode) — L58
+- 4. Required configuration (spec §5.7) — L71
+- 4.1 Runtime settings (TASK-031) — L100
+- 4.2 Reply streaming (STREAM_MODE) — L121
+- 5. Retention settings (spec §10.0) — L124
+- 6. Startup checks you will hit — L131
+  - 6.1 Live-test fixes you may hit (TASK-033 era) — L142
+- 7. Local run (CLI) — L145
+- 8. Native VPS deploy (spec §11.11, §11.18) — L161
+  - 8.1 Accounts (owner checklist, spec §11.18.2) — L165
+  - 8.2 Deploy or upgrade — L187
+  - 8.3 Editing the env file — L202
+  - 8.4 Weekly dependency scan (dev account) — L218
+  - 8.5 Restore a backup (spec §11.18.3) — L230
+  - 8.6 Restore the knowledge directory (spec §11.19.9) — L248
+  - 8.7 Restoring a Hostinger backup (spec §11.19.10) — L264
+- 9. Checks for a new environment — L274
+- 10. Related documents — L280
 
 > Status (v0.2.0 release candidate): the owner pivoted to SQLite and a native systemd service on the Hostinger VPS (spec §11, `docs/specs/2026-11-23-phase1-spec-s11-sqlite-vps.md`). There is no Docker, Compose or Postgres. Deploy files live in `deploy/`. The Discord layer (one client per persona, System log bot, approvals routing) is built in code. It is not live on the VPS; the service is enabled only at B1-ENABLE.
 
@@ -108,10 +109,14 @@ The defaults for all other settings (agent limits, timeouts, budgets, voice, job
 | `approval.ai_daily_max` | 0..200 AI decisions per head per day | 20 |
 | `approval.channel.<code>` | `hq` or a channel id inside the allowlist (not the settings or #bot-log channel). Codes: fin hr mkt sal ops it leg prc sup dat dsn prd dev | Finance, HR, Marketing, Sales, Operations, R&D (`prd`) and Software House (`dev`) channels; every other code `hq` |
 | `approval.head.<code>` | `none` or the id of an enabled persona of that department | account mali, hr fahsai, marketing somo, sales bass, operations ploy, it phupha, legal thara, procurement pat, support sai, data kawin, design nicha, product pim, dev tek |
+| `growth.lessons_per_day` | 0..50 lessons per persona per day; 0 switches learning off | 3 |
+| `growth.overlay_max_chars` | 500..6000 characters of lessons in each prompt overlay | 3000 |
 
 Approval routing: a request below `approval.hq_threshold_thb` goes to its department's AI head; a request at or above it goes to HQ, where a human with the AI-Admin role decides. Codes: tasks `DEV-0001`, approvals `APR-FIN-0007`. Discord commands: `/task show|edit|cancel`, `/approval show|cancel`, and `/setting view|set|reset`. `/setting` works only in `SETTINGS_CHANNEL_ID`, not in its threads. Spec: `docs/specs/2026-11-24-approvals-routing-spec.md`.
 
-`APPROVAL_CHANNEL_ID` stays the HQ approvals channel and the fallback when a department channel is unset, unresolved or not allowlisted. `APPROVAL_TTL_H` is now only the seed for `approval.ttl_h`. Migrations 0002 (`approvals_routing`) and 0003 (`audit_decide`) run at the next start: stop the service first (`python -m core.migration` takes a pre-migration backup). Pending department approvals are reviewed again by their head after a restart.
+`APPROVAL_CHANNEL_ID` stays the HQ approvals channel and the fallback when a department channel is unset, unresolved or not allowlisted. `APPROVAL_TTL_H` is now only the seed for `approval.ttl_h`. Migrations 0002 (`approvals_routing`), 0003 (`audit_decide`) and 0004 (`growth`) run at the next start: stop the service first (`python -m core.migration` takes a pre-migration backup). Pending department approvals are reviewed again by their head after a restart.
+
+Growth (v0.3.0): approved lessons reach the agents through a secondary prompt block (the overlay). `growth.lessons_per_day` caps new lesson proposals per persona per day, and `growth.overlay_max_chars` caps the overlay size; both change in ⚙️ setting with `/setting set`. Migration 0004 (`growth`) adds the `lessons`, `overlay_versions`, `overlay_active`, `departments` and `personas_runtime` tables, and rebuilds `audit_log` and `code_counters` to widen their CHECK lists. Hiring and departments are described in [discord-apps.md](discord-apps.md#hired-personas-growth-v03).
 
 ### 4.2 Reply streaming (STREAM_MODE)
 `STREAM_MODE` is optional and defaults to `typing`. `typing` shows the Discord typing indicator, renews it every 8 s, then sends one final message. `edit` posts a placeholder message and then edits it live. Any other value is refused (`bounds:STREAM_MODE`). Set it in `.env.local` or the VPS env file (names only in [`.env.example`](../../.env.example)).
@@ -133,6 +138,9 @@ Config refuses to start with these codes (spec §10.14). Each code is the messag
 - `budget_guard_missing`, `approver_role_invalid`, `cli_flag_in_discord_mode`: see spec §10.14.
 
 Empty environment values count as unset (spec §10.3.2).
+
+### 6.1 Live-test fixes you may hit (TASK-033 era)
+- A task ordered in the HQ lounge, when the assignee cannot see the lounge, opens its thread in the 📋-tasks channel (`TASKS_CHANNEL_ID`) instead. Code: `core/tasks/service.py` `TaskService.create` (lines 40 to 43). If a thread is missing from the lounge, look in 📋-tasks first.
 
 ## 7. Local run (CLI)
 

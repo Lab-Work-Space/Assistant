@@ -12,18 +12,19 @@ referenced_plan: "docs/plans/2026-11-23-phase1-plan.md"
 
 ## Contents
 
-- 1. Summary — L28
-- 2. Delivery in two slices — L39
-- 3. Components and flow — L52
-- 4. Interfaces — L95
-- 5. Security posture (summary) — L108
-- 6. Phase 2 and out of scope — L125
-- 7. Open items — L130
-- 8. Decisions — L138
-- 9. Folder map — L150
-- 10. Related documents — L168
+- 1. Summary — L29
+- 2. Delivery in two slices — L40
+- 3. Components and flow — L53
+- 4. Interfaces — L96
+- 5. Security posture (summary) — L109
+- 6. Phase 2 and out of scope — L126
+- 7. Open items — L131
+- 8. Decisions — L140
+- 9. Growth module (v0.3.0) — L155
+- 10. Folder map — L211
+- 11. Related documents — L230
 
-> Status (2026-11-24, v0.2.0 release candidate): Slice A is built on the owner pivot (spec §11): one **SQLite** file at `DATABASE_PATH`, **native systemd** units on a Hostinger VPS, **no Docker, no Compose, no Postgres**. Slice B (Discord clients, reply gate, approvals routing, System log bot, `core/__main__.py`) is built in code; it is not enabled on the VPS until B1-ENABLE. Section 9 lists what exists.
+> Status (2026-11-24, v0.2.0 release candidate): Slice A is built on the owner pivot (spec §11): one **SQLite** file at `DATABASE_PATH`, **native systemd** units on a Hostinger VPS, **no Docker, no Compose, no Postgres**. Slice B (Discord clients, reply gate, approvals routing, System log bot, `core/__main__.py`) is built in code; it is not enabled on the VPS until B1-ENABLE. Growth (v0.3.0, section 9) is built in code, with Gate 1 conditional approval. Section 10 lists what exists.
 
 ## 1. Summary
 
@@ -132,6 +133,7 @@ Full controls and conditions: spec §6, §10 and §11; the Gate reports listed i
 - Slice B: `deploy/employee.service` runs `python -m core` (`core/__main__.py` exists). The VPS service is enabled only at B1-ENABLE.
 - Slice B: the ffmpeg carve-out in spec §10.6.4 must be resolved by the sa role before TASK-016 (spec §10.17).
 - Slice B: Discord setup readiness is the owner's decision (plan, Slice B).
+- Growth (v0.3.0): no Security Gate 2 report for TASK-033 is in `docs/security/` yet. Gate 1 conditions G033-01 to G033-12 are in the growth spec §9.
 - Off-host backup: none in Slice A (spec §11 OQ-3). Local backups do not survive loss of the disk.
 - Spec §7 defaults (defaults stated for owner awareness, changeable without schema change): late-joiner DM failure is never captured; an agent can start recording only when the requester is in that voice channel; budget is per agent; a plain human message in an open task thread is treated as addressed to the assignee; spoken commands are not in phase 1.
 
@@ -146,14 +148,74 @@ Full controls and conditions: spec §6, §10 and §11; the Gate reports listed i
 | Old bot code | Not reused; build fresh | PRD §7 |
 | Phase 1 MCP | None; built-in tools only | PRD §7 |
 | Voice consent | Opt-out, notice embed plus DM for late joiners | PRD §6.9 |
+| Growth learning | Reviewed lessons go into a versioned secondary overlay, rendered at run time. The AI never edits `prompts/**` | Growth spec §0, §1, §9 |
+| Growth staffing | Hired personas are `personas_runtime` rows that speak via Praw until their own token is set; fired is a soft disable | Growth spec §0 OQ-1, OQ-2, §F |
+| Growth cost | `growth.lessons_per_day` is seeded at 3 (not 6); 0 turns learning off | Growth spec §0 OQ-4 |
 
-## 9. Folder map
+## 9. Growth module (v0.3.0)
+
+Source: `docs/specs/2026-11-24-growth-spec.md` (requirements R1-R28, owner calls in §0, Gate 1 conditions G033-01 to G033-12 in §9). Gate 1 verdict: `docs/security/2026-11-24-gate1-task033.md` (CONDITIONAL_APPROVE). No Gate 2 report for TASK-033 is in `docs/security/` at the time of writing. Package `core/growth/` (`ext.py` wiring, `lessons.py`, `overlays.py`, `personas.py`, `g1.py` fixed routing rules, `__init__.py` with `OVERLAY_HARD_MAX_CHARS = 13300`). Slash commands: `core/discord/growth_commands.py`.
+
+### 9.1 Lesson flow
+- A task that ends `done` or `failed` starts a fire-and-forget lesson proposal. It never raises into `TaskService.update`.
+- The assignee proposes with its cheap model, using `prompts/_system/lesson-propose.md`. The cap is `growth.lessons_per_day` per persona per day. The count is repeated inside the insert transaction (G033-07).
+- A lesson is a `lessons` row with code `LSN-<DEPT>-<nnnn>`, scope `persona` or `dept`, one of nine categories, and a body of 20 to 400 characters on one line. It starts `pending` and is linked to an approval request (`approvals.request`, reason "Learned guidance proposal").
+- `g1.py` routes by fixed rules, not by AI. Categories `permissions`, `money`, `policy` and `safety` go to HQ. Control and format characters are stripped first. Text with letters outside ASCII and Thai goes to HQ. `<`, `>`, URLs, mentions and runs of 15 or more digits are refused (G033-02, G033-03).
+- Approve sets `approved` and adds the lesson to its scope's overlay. Reject, or a later change from approved, removes it. Each change writes a new `overlay_versions` row.
+
+### 9.2 Overlay and prompt order
+- `overlay_versions` keeps history. The body is capped at 6500 characters by CHECK. `overlay_active` points at the active version per scope (`0` = empty).
+- The prompt is always rendered from the active version's `lesson_ids`, filtered to approved lessons (G033-01). A rollback cannot bring back rejected or deleted lessons.
+- The block is the department overlay first, then the persona overlay, wrapped as `<untrusted source="overlay">`. The size follows `growth.overlay_max_chars`.
+- The overlay is skipped for the `approval_review` trigger. Any error gives an empty overlay and logs `growth.overlay_failed`.
+- Over the hard cap of 13300 characters the overlay is dropped, never sliced (G033-04). If the masked result differs from the text, it is dropped too.
+
+```mermaid
+flowchart TD
+    A["wrapper.md, with the overlay pointer line"] --> B["persona body"]
+    B --> C["fragments"]
+    C --> D["Runtime: roster, time, channel"]
+    D --> E["system_extra"]
+    E --> F{"secret mask unchanged?"}
+    F -->|no| X["PromptError prompt_contains_secret"]
+    F -->|yes| G{"overlay present and at most 13300 chars?"}
+    G -->|no| H["prompt without overlay"]
+    G -->|yes| I["append department overlay, then persona overlay"]
+    I --> J{"masked result unchanged?"}
+    J -->|no| H
+    J -->|yes| K["final system prompt"]
+```
+
+The mermaid above matches `build_system` in `core/agents/prompt_builder.py` and the overlay call in `core/agents/engine.py`.
+
+### 9.3 Settings and departments
+- Settings (in `core/settings/service.py`): `growth.lessons_per_day` 0..50, seed 3; `growth.overlay_max_chars` 500..6000, seed 3000. Both change through `/setting`.
+- Runtime departments live in the `departments` table. At startup `load_departments` calls `register_dept` for each row. That mutates `DEPT_CODES`, `DEPT_SLUGS` (now a list) and `KEYS` in place, so modules that already imported them see the change.
+- `/dept add` does not create a knowledge area (OQ-3), Discord channels or Discord apps.
+
+### 9.4 Runtime personas and startup
+- `RuntimePersonaRegistry` (`core/growth/personas.py`) wraps the file registry. `reload()` swaps the internal maps, so `ctx.personas` keeps its identity. `get`, `all` and `by_name` return active personas only. `known_ids()` includes fired ones.
+- Hired personas are `personas_runtime` rows built from `prompts/_system/hired-persona.md`. Details are in [persona-format.md](persona-format.md#6-runtime-personas-and-the-overlay-pointer-growth-v03).
+- Startup order (R23): the file registry loads, and token suffixes that match no file persona are deferred. The database opens, departments load, and the runtime registry loads. Each deferred suffix must match a known hired id, or startup refuses with `unknown_persona_token:<SUF>`. A fired id is skipped and logged as `persona.token_fired`.
+- A hired persona without a token speaks through Praw. See [discord-apps.md](../helper/discord-apps.md#hired-personas-growth-v03).
+- Heads: `/move … head:true` needs a Discord client (R24). `/fire` resets the department head setting to `none` if the persona was head.
+
+### 9.5 Commands and audit
+- Commands (settings channel, fresh approver check, ephemeral replies, logs carry ids and fixed tokens only, G033-11): `/lesson list|show|delete`, `/overlay history|rollback`, `/hire`, `/fire`, `/move`, `/dept add`. Arguments are in the commands table of [README.md](../../README.md). The growth commands are in `core/discord/growth_commands.py`.
+- Every change writes an audit row. Reasons and free text are masked before they are written (G033-11).
+
+### 9.6 Migration 0004
+- `core/migration/versions/0004_growth.sql` (`growth`) creates `lessons`, `overlay_versions`, `overlay_active`, `departments` and `personas_runtime`. It rebuilds `audit_log` and `code_counters` to widen their CHECK lists. `personas_runtime` rejects reserved ids by CHECK (G033-12).
+- It runs at the next start, after the service is stopped (see [setup.md](../helper/setup.md#41-runtime-settings-task-031)).
+
+## 10. Folder map
 
 | Folder | Status |
 | :--- | :--- |
 | `core/config.py`, `core/interfaces.py`, `core/extensions.py` | exist. `core/core.py` exists and is empty |
 | `core/db/` | exists: `sqlite.py` (connection, path checks, authorizer, `Database` API) and `backup.py` (backup and `restore` CLI) |
-| `core/migration/` | exists: `runner.py`, `__main__.py` (`python -m core.migration`), `versions/0001_phase1.sql` (schema 0001), `0002_approvals_routing.sql`, `0003_audit_decide.sql`, `retention.py`, `retention_main.py`, tests |
+| `core/migration/` | exists: `runner.py`, `__main__.py` (`python -m core.migration`), `versions/0001_phase1.sql` (schema 0001), `0002_approvals_routing.sql`, `0003_audit_decide.sql`, `0004_growth.sql`, `retention.py`, `retention_main.py`, tests |
+| `core/growth/` | exists (v0.3.0): `ext.py`, `lessons.py`, `overlays.py`, `personas.py`, `g1.py`, `__init__.py`. Section 9 |
 | `core/cli/` | exists: `python -m core.cli` (harness, script mode) |
 | `core/functions/logs/` | exists: `logsystem.py` (JSON logger, `install_logging`) and `masking.py` |
 | `core/agents/`, `core/provider/`, `core/agent_tools/` | exist: persona loader, providers, built-in tools |
@@ -165,11 +227,12 @@ Full controls and conditions: spec §6, §10 and §11; the Gate reports listed i
 | `knowledge/` | exists: 14 department areas plus `memory`, `notes`, `drafts`, `rules`, `meetings` and `_template/`, mostly empty. On the VPS `install.sh` seeds `/var/lib/employee/knowledge` from it |
 | `docs/` | exists; PRD, plan, specs, security reports, test reports, spike and index |
 
-## 10. Related documents
+## 11. Related documents
 
 - Setup, env names and VPS deploy: `docs/helper/setup.md`
 - Knowledge store format: `docs/development/knowledge-format.md`
 - Persona file format: `docs/development/persona-format.md`
 - Current stack and data rules: `docs/specs/2026-11-23-phase1-spec-s11-sqlite-vps.md`
+- Growth (v0.3.0) spec and design: `docs/specs/2026-11-24-growth-spec.md`, `docs/specs/2026-11-24-growth-design.md`
 - Discord rollout (one app per persona, System bot): `docs/specs/2026-11-23-phase1-spec-s12-discord-rollout.md` §12.10, §12.14
 - Approvals routing: `docs/specs/2026-11-24-approvals-routing-spec.md`

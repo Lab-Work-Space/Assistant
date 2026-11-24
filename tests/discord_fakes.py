@@ -48,7 +48,7 @@ class Channel:
     def __init__(self, cid, category_id=None, parent=None, guild_id=G, owner="praw"):
         self.id, self.category_id, self.parent, self.owner = cid, category_id, parent, owner
         self.parent_id = parent.id if parent else None
-        self.guild = types.SimpleNamespace(id=guild_id)
+        self.guild = types.SimpleNamespace(id=guild_id, me=types.SimpleNamespace(id=0))  # me: bot member for permissions_for
         self.sent, self.denied, self.hooks, self.created = [], set(), [], []
 
     async def send(self, content=None, embed=None, view=None, file=None, allowed_mentions=None):

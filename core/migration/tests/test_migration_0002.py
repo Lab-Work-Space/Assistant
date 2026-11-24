@@ -5,6 +5,8 @@ import shutil
 from core.db.sqlite import VERSIONS_DIR, connect
 from core.migration.runner import migrate
 
+HEAD = len(list(VERSIONS_DIR.glob("[0-9][0-9][0-9][0-9]_*.sql")))  # latest migration number
+
 
 def legacy(tmp_path) -> str:
     v1 = tmp_path / "v1"
@@ -30,7 +32,7 @@ def legacy(tmp_path) -> str:
 
 def test_legacy_db_migrates_with_backfill_counters_and_integrity(tmp_path):
     p = legacy(tmp_path)
-    assert migrate(p) == 3
+    assert migrate(p) == HEAD
     assert [f for f in os.listdir(tmp_path / "data" / "backups") if f.startswith("pre-migrate-")]  # pre-migration backup
     c = connect(p)
     assert c.execute("PRAGMA integrity_check").fetchall() == [("ok",)]
@@ -41,13 +43,13 @@ def test_legacy_db_migrates_with_backfill_counters_and_integrity(tmp_path):
     assert c.execute("SELECT kind, dept, last FROM code_counters").fetchall() == [("approval", "HQ", 3)]
     assert c.execute("SELECT code, dept, priority, due, value_thb FROM tasks").fetchall() == [("TASK-1", None, None, None, None)]
     assert c.execute("SELECT count(*) FROM brainstorm_threads").fetchone()[0] == 1  # FK target kept
-    assert c.execute("SELECT max(version) FROM schema_version").fetchone()[0] == 3
+    assert c.execute("SELECT max(version) FROM schema_version").fetchone()[0] == HEAD
     n = c.execute("INSERT INTO code_counters (kind, dept, last) VALUES ('approval','HQ',1) ON CONFLICT (kind, dept) DO UPDATE SET last=last+1 RETURNING last").fetchone()[0]
     assert n == 4  # new approvals continue after the backfill
     names = {r[0] for r in c.execute("SELECT name FROM sqlite_master")}
     assert {"settings", "audit_log", "code_counters", "approvals_pending_idx", "approvals_agent_decided_idx", "audit_actor_idx", "tasks_code_idx"} <= names
     c.close()
-    assert migrate(p) == 3  # idempotent
+    assert migrate(p) == HEAD  # idempotent
 
 
 def test_0003_keeps_audit_rows_and_allows_decide(tmp_path):
@@ -66,7 +68,7 @@ def test_0003_keeps_audit_rows_and_allows_decide(tmp_path):
     c.execute("INSERT INTO audit_log (scope,ref,action,field,old_value,new_value,actor) VALUES ('approval','APR-HQ-0001','override','decided_by','agent:x','cli:a','cli:a')")
     before = c.execute("SELECT * FROM audit_log").fetchall()
     c.close()
-    assert migrate(p) == 3
+    assert migrate(p) == HEAD
     c = connect(p)
     assert c.execute("SELECT * FROM audit_log").fetchall() == before
     assert c.execute("PRAGMA integrity_check").fetchall() == [("ok",)]

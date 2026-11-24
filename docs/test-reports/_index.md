@@ -13,6 +13,12 @@ Up: [docs index](../_index.md)
   - [My adversarial additions (tests/test_task031_adversarial.py)](2026-11-24-task031-approvals.md#my-adversarial-additions-teststest_task031_adversarialpy)
   - [Defects](2026-11-24-task031-approvals.md#defects)
   - [Not done](2026-11-24-task031-approvals.md#not-done)
+- [TASK-033 v0.3.0 Growth - Stage 6 test report](2026-11-24-task033-growth.md) — Verdict: **REJECTED (1 Critical defect)**. ACCEPTANCE: **partially met**.
+  - [1. Defect](2026-11-24-task033-growth.md#1-defect)
+  - [2. AT results](2026-11-24-task033-growth.md#2-at-results)
+  - [3. G033 results](2026-11-24-task033-growth.md#3-g033-results)
+  - [4. E2E coverage (`tests/acceptance_growth/test_growth_e2e.py`)](2026-11-24-task033-growth.md#4-e2e-coverage-testsacceptance_growthtest_growth_e2epy)
+  - [5. Commands and output](2026-11-24-task033-growth.md#5-commands-and-output)
 - [Phase 1 Slice A acceptance report (TASK-021A)](phase1-sliceA.md) — TASK-021A acceptance via CLI script; DEFECT-1..2 | test, phase1
   - [Results (all rc=0 unless noted)](phase1-sliceA.md#results-all-rc0-unless-noted)
   - [AC-10 secret grep](phase1-sliceA.md#ac-10-secret-grep)

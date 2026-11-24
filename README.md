@@ -163,6 +163,9 @@ Approvals   APR-FIN-0007          APR-HQ-0001
 | `/approval show` · `cancel` | Look up or withdraw an approval request |
 | `/setting view` · `set` · `reset` | Tune live settings, such as the threshold. AI-Admin only, in ⚙️ setting |
 | `/budget view` · `set` | Daily budget per persona |
+| `/lesson list [target]` · `show` · `delete` | Growth: review learned lessons (`code`, optional `reason`). AI-Admin only, in ⚙️ setting |
+| `/overlay history` · `rollback` | Growth: list prompt-overlay versions, or activate an older one (`version` 0 = empty). AI-Admin only, in ⚙️ setting |
+| `/hire` · `/fire` · `/move` · `/dept add` | Growth: hire or disable a persona, move it (`head:true` makes it head), add a department. AI-Admin only, in ⚙️ setting |
 | `/voice …` | Voice features. Off by default |
 
 > 💡 `.env.local` holds the fixed values. `/setting` holds the values you tune from Discord.
@@ -245,7 +248,7 @@ docs/        📖 PRD · specs · security reviews · guides
 
 - ✅ **v0.1, Core.** Engine, tools, knowledge, budgets, CLI
 - 🔄 **v0.2, Discord.** 20 bots, System log bot, coded tasks and approvals, ⚙️ setting, typing indicator *(live testing)*
-- 🌱 **v0.3, Growth.** Two parts:
+- 🏗️ **v0.3, Growth.** Built in code (Gate 1 conditional approval; spec `docs/specs/2026-11-24-growth-spec.md`). Two parts:
   - 📈 **The team learns from its work.** Reviewed lessons go into a secondary prompt that is versioned and can be rolled back. AI **never** edits a main prompt.
   - 🏗️ **The company can grow.** Use `/hire`, `/fire`, `/move` and `/dept add` from ⚙️ setting.
 

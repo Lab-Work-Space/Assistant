@@ -4,6 +4,7 @@ Spec: section 12.8 and 12.10 of `docs/specs/2026-11-23-phase1-spec-s12-discord-r
 
 ## Contents
 - [Persona ids and env names](#persona-ids-and-env-names)
+- [Hired personas (Growth, v0.3)](#hired-personas-growth-v03)
 - [Create each application](#create-each-application)
 - [Intents](#intents)
 - [Permissions](#permissions)
@@ -44,6 +45,18 @@ Env suffix = persona id in upper case. Each persona needs `DISCORD_BOT_TOKEN_<ID
 | สายชล | sai | `DISCORD_BOT_TOKEN_SAI` | `DISCORD_APP_ID_SAI` |
 
 Only `praw` is required. A persona without a token, or whose login fails, is disabled: its work goes to Praw and #bot-log gets `persona_disabled:<id>` (posted by System). There is no webhook fallback. At most `DISCORD_MAX_CLIENTS` (default 25) tokens are accepted. `INTAKE_PERSONA` (default `praw`) names the intake persona.
+
+## Hired personas (Growth, v0.3)
+A persona hired with `/hire` (spec `docs/specs/2026-11-24-growth-spec.md`, section F) has no Discord client at first. Until its token is set, it speaks through Praw with the `**{name}:** ` prefix. To give it its own bot:
+1. Create its application as in "Create each application", using the new id in upper case for the env suffix.
+2. Add `DISCORD_BOT_TOKEN_<ID>` and `DISCORD_APP_ID_<ID>` to the env file (mode 0600).
+3. Restart the bot. The client starts at that start; a running bot does not pick it up.
+
+Notes:
+- A token for an id that was never hired stops startup with `unknown_persona_token:<SUF>`. Hire the persona first.
+- `/hire` has no head option. A persona without its own client cannot be head. Once it has a token, use `/move <id> <dept> head:true`.
+- `/fire` is a soft disable. A fired persona's token is skipped at startup and logged as `persona.token_fired`.
+- `/dept add` does not create Discord channels or apps; create those by hand.
 
 ## Create each application
 1. Discord Developer Portal, New Application, name = persona display name, set the avatar.

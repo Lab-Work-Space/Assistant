@@ -77,8 +77,13 @@ class Chan(Channel):
         self.world.all.append((self.uid, self.id, m))
         return m
 
-    async def create_thread(self, name, type=None):
-        return await self.get_partial_message(0).create_thread(name=name)
+    async def create_thread(self, name, message=None, type=None):   # same shape as py-cord TextChannel.create_thread
+        th = Chan(next(self.world.ids) + 10**17, self.uid, self.world, parent=self)
+        th.name = name
+        self.world.threads[th.id] = self.id
+        self.world.threads_obj = getattr(self.world, "threads_obj", {})
+        self.world.threads_obj[th.id] = th
+        return th
 
     async def history(self, limit, oldest_first=False):
         for m in [x for x in self.sent if x.content][::-1][:limit]:
@@ -91,13 +96,6 @@ class Chan(Channel):
         ch = self
 
         class P:
-            async def create_thread(self, name):
-                th = Chan(next(ch.world.ids) + 10**17, ch.uid, ch.world, parent=ch)
-                th.name = name
-                ch.world.threads[th.id] = ch.id
-                ch.world.threads_obj = getattr(ch.world, "threads_obj", {})
-                ch.world.threads_obj[th.id] = th
-                return th
 
             async def edit(self, embed=None, view=None):
                 ch.edits.append((mid, embed, view))

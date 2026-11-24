@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 
 from core.config import PROJECT_ROOT
 from core.functions.logs.masking import mask_secrets
+from core.growth import OVERLAY_HARD_MAX_CHARS
 from core.interfaces import AgentRequest, Persona
 
 
@@ -20,7 +21,8 @@ def channel_kind(req: AgentRequest) -> str:
     return "cli" if req.origin == "cli" else "dm" if req.guild_id is None else "thread" if req.thread_id else "channel"
 
 
-def build_system(persona: Persona, roster: list[Persona], config, req: AgentRequest, now: datetime | None = None) -> str:
+def build_system(persona: Persona, roster: list[Persona], config, req: AgentRequest, now: datetime | None = None,
+                 overlay: str = "") -> str:
     root = Path(config.prompts_dir)
     root = root if root.is_absolute() else PROJECT_ROOT / root
     parts = [(root / "_system" / "wrapper.md").read_text(encoding="utf-8"), persona.body]
@@ -38,4 +40,8 @@ def build_system(persona: Persona, roster: list[Persona], config, req: AgentRequ
     text = "\n\n".join(parts)
     if mask_secrets(text) != text:
         raise PromptError("prompt_contains_secret")
+    if overlay and len(overlay) <= OVERLAY_HARD_MAX_CHARS:   # G033-04: drop, never slice a wrapped block
+        cand = text + "\n\n" + overlay
+        if mask_secrets(cand) == cand:
+            return cand
     return text

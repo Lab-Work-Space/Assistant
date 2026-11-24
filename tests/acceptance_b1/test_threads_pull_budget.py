@@ -155,3 +155,13 @@ async def test_budget_notice_posts_to_admin_channel_pinging_only_approver_role(t
     assert "budget: praw reached 80%" in m.content and f"<@&{APPROVER_ROLE}>" in m.content
     assert [x.id for x in m.mentions.roles] == [APPROVER_ROLE] and m.mentions.everyone is False and not m.mentions.users
     await r.stop()
+
+
+async def test_task_thread_moves_to_tasks_channel_when_assignee_cannot_see_origin(tmp_path, monkeypatch):
+    """Live bug 2026-11-24: a head ordered work in the HQ lounge; the team member could not see the lounge thread."""
+    r = await launch(tmp_path, monkeypatch, SMALL)
+    r.ch(ALLOWED, "tek").denied.add(0)            # tek's client has no view of the origin channel
+    t = await delegate(r)
+    assert t is not None and t["thread_id"] and t["origin_channel_id"] == TASKS
+    assert r.world.threads[t["thread_id"]] == TASKS
+    await r.stop()

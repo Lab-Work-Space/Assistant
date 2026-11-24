@@ -79,8 +79,15 @@ class Engine:
             return res
         model = persona.cheap_model if level == "fallback" else persona.model
         await sink.start()
+        overlay = ""
+        if self.ctx.growth is not None and req.trigger != "approval_review":
+            try:
+                overlay = await self.ctx.growth.overlays.prompt_block(persona) or ""
+            except Exception as e:
+                overlay = ""
+                self._log("growth.overlay_failed", "ERROR", agent=persona.id, run=run_id, error=type(e).__name__)
         try:
-            system = build_system(persona, self.ctx.personas.all(), c, req)
+            system = build_system(persona, self.ctx.personas.all(), c, req, overlay=overlay)
         except PromptError as e:
             self._log("agent.run_failed", "ERROR", agent=persona.id, run=run_id, error=e.code)
             await sink.fail(strings.INTERNAL_ERROR)

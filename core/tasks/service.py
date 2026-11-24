@@ -38,6 +38,9 @@ class TaskService:
             raise ThreadError(err)
         port = self.orch._port()
         channel = ctx.channel_id if ctx.guild_id is not None and ctx.thread_id is None else c.tasks_channel_id
+        visible = getattr(port, "visible_to", None)  # Discord only; the CLI has no per-persona visibility
+        if visible is not None and channel != c.tasks_channel_id and not visible(channel, persona):
+            channel = c.tasks_channel_id  # e.g. ordered in the HQ lounge, which the team member cannot see
         kind, by = ("human", str(ctx.human_user_id)) if ctx.human_user_id else ("agent", ctx.agent.id)
         t = await self.repo.insert_task(guild_id=ctx.guild_id or c.discord_guild_id, channel_id=channel,
                                         title=a["title"], description=a.get("description", ""), kind=kind,
@@ -85,6 +88,11 @@ class TaskService:
         t = await self.repo.set_task(t["id"], a["status"], a.get("report"))
         if t is None:
             raise ThreadError("task_closed")
+        if t["status"] in ("done", "failed") and getattr(self.ctx, "growth", None) is not None:
+            try:  # R7: fire-and-forget, never raises into update
+                self.ctx.growth.lessons.after_task(t)
+            except Exception as e:
+                self.ctx.log.write_log("tasks", "task.lesson_hook_failed", "WARNING", exc_type=type(e).__name__)
         port = self.orch._port()
         try:
             await port.edit_embed(t["origin_channel_id"], t["embed_message_id"] or 0, self._embed(t))

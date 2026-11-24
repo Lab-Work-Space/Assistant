@@ -70,6 +70,28 @@ def toc(folder: Path, prefix: str, descs: dict[str, str]) -> list[str]:
     return out
 
 
+CONTENTS_LINE = re.compile(r"^(\s*- )(.+?) — L(\d+)(\s*)$")
+
+
+def fix_contents(path: Path) -> bool:
+    """Repoint "- Heading — L<n>" Contents entries at the line of the heading with that text. True if changed."""
+    lines, fence, at = path.read_text(encoding="utf-8").splitlines(), False, {}
+    for i, ln in enumerate(lines, 1):
+        if ln.lstrip().startswith(("```", "~~~")):
+            fence = not fence
+        elif not fence and (m := HEAD.match(ln)):
+            at.setdefault(m.group(2), i)
+    out = []
+    for ln in lines:
+        m = CONTENTS_LINE.match(ln)
+        n = at.get(m.group(2)) if m else None
+        out.append(f"{m.group(1)}{m.group(2)} — L{n}{m.group(4)}" if n else ln)
+    if out != lines:
+        path.write_text("\n".join(out) + "\n", encoding="utf-8")
+        return True
+    return False
+
+
 def folders() -> list[Path]:
     return sorted({p.parent for p in DOCS.rglob("*.md")} - {DOCS})
 
@@ -96,6 +118,9 @@ def build() -> dict[Path, str]:
 
 def main() -> int:
     stale = []
+    for doc in sorted(p for p in DOCS.rglob("*.md") if p.name != "_index.md"):
+        if "--check" not in sys.argv and fix_contents(doc):
+            print("contents: " + str(doc.relative_to(DOCS.parent)))
     for path, text in build().items():
         if not path.exists() or path.read_text(encoding="utf-8") != text:
             stale.append(path)

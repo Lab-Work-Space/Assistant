@@ -46,3 +46,21 @@ async def test_google_complete_keeps_http_deadline_legal_and_times_out_locally()
     with pytest.raises(ProviderError) as e:
         await a.complete(model="m", prompt="p", max_output_tokens=8, timeout_s=0.05)
     assert seen["timeout"] >= 10000 and e.value.code == "timeout"
+
+
+async def test_google_complete_floors_tiny_output_cap():
+    """Live-found 2026-11-24: with max_output_tokens=8 Gemini 3 spent the cap on thinking and returned ''."""
+    import types
+    from core.provider.google.adapter import MIN_COMPLETE_TOKENS, GoogleAdapter
+    seen = {}
+
+    class Models:
+        async def generate_content(self, model, contents, config):
+            seen["max"] = config.max_output_tokens
+            return types.SimpleNamespace(text="routine", usage_metadata=None)
+
+    a = GoogleAdapter(client=types.SimpleNamespace(aio=types.SimpleNamespace(models=Models())))
+    out, _ = await a.complete(model="m", prompt="p", max_output_tokens=8, timeout_s=3)
+    assert out == "routine" and seen["max"] == MIN_COMPLETE_TOKENS
+    await a.complete(model="m", prompt="p", max_output_tokens=600, timeout_s=3)
+    assert seen["max"] == 600

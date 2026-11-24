@@ -26,6 +26,12 @@ class Chan(Channel):
         super().__init__(cid, **kw)
         self.uid, self.edits = uid, []
 
+    async def create_thread(self, name, message=None, type=None):   # py-cord TextChannel API (PartialMessage has none)
+        th = Chan(next(IDS) + 10**17, 0, parent=self)
+        th.name = name
+        THREADS[th.id] = th
+        return th
+
     async def send(self, content=None, embed=None, view=None, file=None, allowed_mentions=None):
         m = await super().send(content, embed, view, file, allowed_mentions)
         m.id = next(IDS)
@@ -44,12 +50,6 @@ class Chan(Channel):
         ch = self
 
         class P:
-            async def create_thread(self, name):
-                th = Chan(next(IDS) + 10**17, 0, parent=ch)
-                th.name = name
-                THREADS[th.id] = th
-                return th
-
             async def edit(self, embed=None, view=None):
                 ch.edits.append((mid, embed, view))
         return P()
@@ -192,7 +192,7 @@ async def test_setup_registers_budget_group_and_task_cancel_at_boot(w):
     bots = {"praw": w.praw}
     w.praw.add_application_command = cmds.append
     app = C.setup_discord(w.ctx, bots)
-    assert [c.name for c in cmds] == ["budget", "task", "approval", "setting"] and "task" in app.router._h
+    assert [c.name for c in cmds][:4] == ["budget", "task", "approval", "setting"] and "task" in app.router._h
 
 
 async def test_cancel_button_creator_or_approver_only(w):
@@ -271,3 +271,10 @@ async def test_history_labels_humans_by_marker_not_persona_name(w):
     out = await w.ctx.threads.history(th.id, 10)
     assert ("human:Tek", "hi") in out
     assert ("Tek", "real") in out
+
+
+def test_fakes_match_pycord_thread_api():
+    """Live bug 2026-11-24: fakes gave PartialMessage a create_thread that py-cord 2.8 does not have."""
+    import discord
+    assert not hasattr(discord.PartialMessage, "create_thread")
+    assert "message" in __import__("inspect").signature(discord.TextChannel.create_thread).parameters

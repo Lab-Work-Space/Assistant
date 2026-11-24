@@ -8,6 +8,7 @@ from core.interfaces import ChatMessage, Effort, ProviderError, StreamEvent, Too
 
 # Thinking budget table (tokens). low = thinking off. Thought parts are never surfaced (include_thoughts=False).
 THINKING_BUDGET = {"low": 0, "medium": 1024, "high": 4096}
+MIN_COMPLETE_TOKENS = 256  # 64 still came back empty 2 of 3 times (thinking used ~60)
 _FINISH_SAFETY = {"SAFETY", "BLOCKLIST", "PROHIBITED_CONTENT", "SPII", "RECITATION", "IMAGE_SAFETY"}
 
 
@@ -98,7 +99,8 @@ class GoogleAdapter:
     async def complete(self, *, model: str, system: str = "", prompt: str, max_output_tokens: int,
                        timeout_s: float) -> tuple[str, Usage]:
         cfg = types.GenerateContentConfig(
-            max_output_tokens=max_output_tokens, system_instruction=system or None,
+            # Gemini 3 counts its minimum thinking against this cap even at budget 0: 8 tokens returned '' (live 2026-11-24)
+            max_output_tokens=max(max_output_tokens, MIN_COMPLETE_TOKENS), system_instruction=system or None,
             thinking_config=types.ThinkingConfig(thinking_budget=0),
             # API refuses deadlines under 10 s (400); keep the HTTP deadline legal and enforce ours locally
             http_options=types.HttpOptions(timeout=int(max(timeout_s, 10) * 1000)))

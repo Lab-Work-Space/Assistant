@@ -117,18 +117,23 @@ class PgApprovalService:
 
     async def request(self, *, kind, title, summary, access, requested_by, origin, human_user_id,
                       origin_channel_id, origin_thread_id, payload, reason=None, value_thb=None, priority=None,
-                      due=None, assignee=None, other_depts=(), for_dept=None, thread_record_id=None) -> str:
+                      due=None, assignee=None, other_depts=(), for_dept=None, thread_record_id=None, classify=None, rate_exempt=False,
+                      task_id=None) -> str:
         if kind not in self._handlers:
             raise ValueError("unsupported_kind")
         if origin != self.policy.surface:  # G2-07: the request must come from this process's surface
             raise ValueError("origin_mismatch")
         limit, ttl = await self.settings.rate_per_day(), await self.settings.ttl_h()
-        count = ("SELECT count(*) FROM approvals WHERE requested_by=?1 AND created_at > strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 day')")
-        if await self.pool.fetchval(count, requested_by) >= limit:  # before the classifier: no LLM spend when limited
+        count = ("SELECT count(*) FROM approvals WHERE requested_by=?1 AND created_at > strftime('%Y-%m-%dT%H:%M:%fZ','now','-1 day')"
+                 " AND json_extract(payload,'$.lesson') IS NULL")  # lesson cards have their own cap (R5)
+        if not rate_exempt and await self.pool.fetchval(count, requested_by) >= limit:  # before the classifier: no LLM spend when limited
             raise ValueError("rate_limited")
         persona = self.personas.get(requested_by) if self.personas is not None else None
         dept_slug = for_dept or (persona.dept if persona else "")
-        task_id, involved = await self._linked_task(thread_record_id)
+        linked, involved = await self._linked_task(thread_record_id)
+        if task_id:  # server-only (G033-05): the caller knows the task even when it has no thread row
+            involved = involved | await self._chain_creators(task_id)
+        task_id = task_id or linked
         if task_id:
             payload = {**payload, "task": task_id}
         if thread_record_id:
@@ -137,9 +142,9 @@ class PgApprovalService:
         card = {"title": title, "summary": summary, "reason": reason, "value_thb": value_thb, "priority": priority}
         level, dept, route_reason = await self.router.route(
             kind=kind, access=list(access), value_thb=value_thb, other_depts=list(other_depts), requested_by=requested_by,
-            dept_slug=dept_slug, involved=involved, card=card, aid=aid)
+            dept_slug=dept_slug, involved=involved, card=card, aid=aid, classify=classify)
         async with self.pool.transaction() as tx:
-            if await tx.fetchval(count, requested_by) >= limit:
+            if not rate_exempt and await tx.fetchval(count, requested_by) >= limit:
                 raise ValueError("rate_limited")
             prefix = "HQ" if level == "hq" else dept
             n = await tx.fetchval("INSERT INTO code_counters (kind, dept, last) VALUES ('approval', ?1, 1) "

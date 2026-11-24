@@ -112,7 +112,7 @@ runuser -u employee -- sh -c 'umask 077; mkdir -p /var/lib/employee/knowledge &&
 # Step 7: units. The service (when present) creates the prod DB via its migration ExecStartPre; the timer waits for it (S11-07).
 install -o root -g root -m 0644 /opt/employee/app/deploy/employee.service /opt/employee/app/deploy/employee-backup.service /opt/employee/app/deploy/employee-backup.timer /etc/systemd/system/
 install -o root -g root -m 0644 /opt/employee/app/deploy/logrotate-employee /etc/logrotate.d/employee
-# Swap on the host would let the 2G MemoryMax be dodged by paging (S1119-11): pin the units to no swap.
+# Swap on the host would let the 1G MemoryMax be dodged by paging (S1119-11): pin the units to no swap.
 if [ -n "$(swapon --show)" ]; then
   for u in employee.service employee-backup.service; do
     install -d -m 0755 "/etc/systemd/system/$u.d"

@@ -46,6 +46,9 @@ async def amain(argv=None, providers=None, out: Out | None = None, env=None) -> 
             log = Log(os.path.join(prepare_log_dir(config.log_dir), "app.jsonl"), stdout=False)
             install_logging(log, config.log_level)
             pool = await open_database(config.database_path)
+            from core.growth.personas import RuntimePersonaRegistry, load_departments
+            await load_departments(pool)
+            personas = await RuntimePersonaRegistry.load(pool, personas, pdir, config.default_cheap_model, log)
         except Exception as e:  # startup refusal: code only, never exception text with secrets
             return _refuse(e if isinstance(e, (Refusal, ConfigError, DbError)) else type(e).__name__)
         threads = CliThreads(out)

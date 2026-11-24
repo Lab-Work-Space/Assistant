@@ -176,7 +176,7 @@ def register_commands(app) -> None:
             g = app.intake.get_guild(app.cfg.discord_guild_id)
             ch = g.get_channel(cid) if g is not None else None
             return ch is not None and getattr(ch, "type", None) == discord.ChannelType.text and app.gate.channel_ok(ch)
-        st.channel_ok, st.is_disabled = channel_ok, lambda pid: pid in app.disabled
+        st.channel_ok, st.is_disabled = channel_ok, lambda pid: pid in app.disabled or pid not in app.bots
 
     Code = lambda: discord.Option(str, "work code", max_length=CODE_MAX)  # noqa: E731
     Why = lambda: discord.Option(str, "reason", required=False, max_length=200)  # noqa: E731
@@ -219,3 +219,6 @@ def register_commands(app) -> None:
 
     for g in (t, a, s):
         app.intake.add_application_command(g)
+
+    from core.discord.growth_commands import register_growth_commands  # late: it imports this module
+    register_growth_commands(app)

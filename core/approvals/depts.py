@@ -22,4 +22,5 @@ def slug_of(code: str) -> str | None:
 
 
 # dept slugs that can carry settings (excludes HQ_ONLY)
-DEPT_SLUGS = tuple(s for s in DEPT_CODES if s not in HQ_ONLY)
+# a list so register_dept can extend it in place (TASK-033 R21)
+DEPT_SLUGS = [s for s in DEPT_CODES if s not in HQ_ONLY]

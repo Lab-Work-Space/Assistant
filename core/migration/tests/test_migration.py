@@ -11,6 +11,8 @@ from core.db.sqlite import VERSIONS_DIR, DbError, connect
 from core.migration import retention as r
 from core.migration.runner import migrate
 
+HEAD = len(list(VERSIONS_DIR.glob("[0-9][0-9][0-9][0-9]_*.sql")))  # latest migration number
+
 TABLES = {"code_counters", "settings", "audit_log", "tasks", "brainstorm_threads", "jobs", "approvals", "usage_events", "budgets", "budget_notices",
           "voice_optouts", "voice_sessions", "voice_notice_deliveries", "conversation_state", "schema_version"}
 
@@ -32,13 +34,13 @@ def conn(tmp_path):
 
 def test_fresh_and_idempotent(tmp_path):
     p = mkpath(tmp_path)
-    assert migrate(p) == 3
+    assert migrate(p) == HEAD
     c = connect(p)
-    assert c.execute("SELECT max(version) FROM schema_version").fetchone()[0] == 3
+    assert c.execute("SELECT max(version) FROM schema_version").fetchone()[0] == HEAD
     assert {x[0] for x in c.execute("SELECT name FROM sqlite_master WHERE type='table'")} >= TABLES
     assert c.execute("PRAGMA foreign_key_check").fetchall() == []
     c.close()
-    assert migrate(p) == 3
+    assert migrate(p) == HEAD
     assert not os.path.exists(tmp_path / "data" / "backups")
 
 
@@ -87,7 +89,7 @@ def test_schema_ahead(tmp_path):
 
 def test_no_forbidden_words_in_sql():
     for f in VERSIONS_DIR.glob("*.sql"):
-        assert not re.search(r"\b(BEGIN|COMMIT|ROLLBACK|PRAGMA|ATTACH|VACUUM)\b", f.read_text(), re.I), f.name
+        assert not re.search(r"\b(BEGIN|COMMIT|ROLLBACK|PRAGMA|ATTACH|VACUUM)\b", re.sub(r"'[^']*'", "", f.read_text()), re.I), f.name  # string literals may name audit actions
 
 
 def _ins(c, sql, *a):

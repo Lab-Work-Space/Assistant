@@ -10,6 +10,7 @@ EXTENSIONS = [
     "core.jobs.ext",
     "core.settings.ext",
     "core.approvals.ext",
+    "core.growth.ext",
     "core.tasks.ext",
     "core.voice.ext",
     "core.agent_tools.knowledge",
@@ -17,12 +18,11 @@ EXTENSIONS = [
     "core.agent_tools.task",
     "core.agent_tools.brainstorm",
     "core.agent_tools.approval",
-    "core.agent_tools.voice",
     "core.agent_tools.pull_user",
     "core.gate.ext",
 ]
 REQUIRED = {"core.budget.ext", "core.agents.ext"}
-DISCORD_ONLY = {"core.voice.ext", "core.agent_tools.voice", "core.agent_tools.pull_user", "core.gate.ext"}
+DISCORD_ONLY = {"core.voice.ext", "core.agent_tools.pull_user", "core.gate.ext"}
 
 
 def init_core(ctx: AppContext) -> list[str]:
